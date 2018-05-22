@@ -109,7 +109,7 @@ This allows the db to use retry functionality when Error 'Too many requests'.
 
 ```javascript
 const mongoose = require('mongoose')
-const { wrap } = require('../azure/azureConfigUtil')
+const { wrap } = require('kth-node-cosmos-db')
 
 const schema = mongoose.Schema({
   name: String,
