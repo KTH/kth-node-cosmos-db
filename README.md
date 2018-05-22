@@ -79,8 +79,6 @@ The collections is simply an array with the names of the collections which will 
 
 In the code above one was able to import the mongoose models and iterate over each model to extract the collection name.
 
----
-
 ### Get Client
 
 If one need to get the client instance to call a specific client function one will get it like this.
@@ -98,8 +96,6 @@ getClient().then(client => {
 // With await (function needs to be async)
 const client = await getClient()
 ```
-
----
 
 ### Wrap mongoose model
 
@@ -123,8 +119,6 @@ module.exports = {
   schema: schema
 }
 ```
-
----
 
 ## Todo
 
