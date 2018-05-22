@@ -14,7 +14,6 @@
     "url": "git+https://github.com/KTH/kth-node-cosmos-db.git"
   },
   "keywords": ["kth", "node", "azure", "cosmosdb"],
-  "author": "Viktor Atterlönn <vikatt@kth.se>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/KTH/kth-node-cosmos-db/issues"
