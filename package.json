@@ -1,6 +1,6 @@
 {
   "name": "@kth/kth-node-cosmos-db",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Node.js module for projects using Azure Cosmos Db.",
   "main": "index.js",
   "directories": {
@@ -13,7 +13,12 @@
     "type": "git",
     "url": "git+https://github.com/KTH/kth-node-cosmos-db.git"
   },
-  "keywords": ["kth", "node", "azure", "cosmosdb"],
+  "keywords": [
+    "kth",
+    "node",
+    "azure",
+    "cosmosdb"
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/KTH/kth-node-cosmos-db/issues"
