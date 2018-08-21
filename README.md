@@ -24,7 +24,8 @@ The module can also set the batchSize to avoid Cursor timeout errors.
   "username": "String",
   "maxThroughput": "Number",
   "throughputStepsize": "Number",
-  "batchSize": "Number"
+  "batchSize": "Number",
+  "logger": "Object"
 }
 ```
 
@@ -59,7 +60,7 @@ The module can also set the batchSize to avoid Cursor timeout errors.
 Create your client by adding the following code to your server.js file:
 
 ```javascript
-const { initClient } = require('kth-node-cosmos-db')
+const { initClient } = require('@kth/kth-node-cosmos-db')
 const models = require('./models')
 
 initClient({
@@ -71,7 +72,8 @@ initClient({
   maxThroughput: 2000,
   collections: Object.keys(models).map(key => {
     return models[key].collection.name
-  })
+  }),
+  logger: console
 })
 ```
 
