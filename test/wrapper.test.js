@@ -4,7 +4,7 @@
 
 const mockery = require('mockery')
 const expect = require('chai').expect
-const model = require('./mocks/model')
+const { model } = require('./mocks/model')
 
 const mockLogger = {}
 mockLogger.error = mockLogger.debug = mockLogger.info = mockLogger.warn = mockLogger.init = function () {}
@@ -19,7 +19,9 @@ describe('Wrapper', () => {
     process.env.NODE_ENV="development"
     process.env.USE_COSMOS_DB=true
 
-    const wrappedModel = wrap(model)
+    const copy = Object.assign({}, model)
+
+    const wrappedModel = wrap(copy)
     expect(wrappedModel.find.constructor.name).to.equal('AsyncFunction')
     done()
   })
@@ -28,8 +30,10 @@ describe('Wrapper', () => {
     process.env.NODE_ENV="development"
     process.env.USE_COSMOS_DB=false
 
-    const wrappedModel = wrap(model)
-    expect(wrappedModel.find.constructor.name).to.not.equal('AsyncFunction')
+    const copy = Object.assign({}, model)
+
+    const wrappedModel = wrap(copy)
+    expect(wrappedModel.find).to.be.undefined
     done()
   })
 })
