@@ -18,7 +18,7 @@ mockery.enable({
   warnOnReplace: false
 })
 
-const { initClient } = require('../lib/client')
+const { initClient, getClient } = require('../lib/client')
 
 describe('Client', () => {
   it('Ask for config object if none is provided', done => {
@@ -48,6 +48,21 @@ describe('Client', () => {
 
     const client = initClient(config).then(client => {
       expect(client).to.not.be.undefined
+      done()
+    })
+  })
+
+  it('Dont break when calling updateAllCollectionsThroughput in development', done => {
+    process.env.NODE_ENV='development'
+
+    const client = getClient().then(client => {
+      let error
+      try {
+        client.updateAllCollectionsThroughput()
+      } catch (e) {
+        error = e
+      }
+      expect(error).to.be.undefined
       done()
     })
   })
