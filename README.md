@@ -12,6 +12,10 @@ The "Too many requests" error will mainly ocur when importing data.
 
 The module can also set the batchSize to avoid Cursor timeout errors.
 
+## Local development
+
+By default this package wont be used when developing locally (using a local database). If one wish to use this package when developing locally one can add `USE_COSMOS_DB=true` in the .ENV file.
+
 ## Client Params
 
 ```json
