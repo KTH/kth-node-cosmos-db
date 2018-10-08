@@ -43,7 +43,8 @@ describe('Client', () => {
       collections: ['test'],
       password: '123',
       username: 'test',
-      maxThroughput: 1000
+      maxThroughput: 1000,
+      log: mockLogger
     }
 
     const client = initClient(config).then(client => {

@@ -27,10 +27,13 @@
   "devDependencies": {
     "chai": "^4.2.0",
     "mocha": "^5.2.0",
-    "mockery": "^2.1.0"
+    "mockery": "^2.1.0",
+    "kth-node-log": "^3.0.2"
   },
   "dependencies": {
-    "documentdb": "^1.14.5",
+    "documentdb": "^1.14.5"
+  },
+  "peerDependencies": {
     "kth-node-log": "^3.0.2"
   }
 }
