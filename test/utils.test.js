@@ -4,6 +4,7 @@
 
 const expect = require('chai').expect
 const { _development } = require('../utils/development')
+const { handleError } = require('../utils/handleError')
 
 describe('Util development', () => {
   it ('return true if NODE_ENV="development"', done => {
@@ -29,5 +30,54 @@ describe('Util development', () => {
     })
     expect(res).to.equal(false)
     done()
+  })
+})
+
+describe('Util handleError', () => {
+
+  it('Handle all types of Request rate is too large errors', done => {
+    process.env.NODE_ENV="development"
+    process.env.USE_COSMOS_DB=true
+
+    let count = 0
+
+    const client = {
+      increaseCollectionThroughput: tmp => {
+        count++
+      }
+    }
+
+    const model = {
+      collection: {
+        collectionName: "test"
+      }
+    }
+
+    const error = {
+      message: "Request rate is large"
+    }
+
+    const error2 = {
+      message: {
+        errors: [
+          "Request rate is large"
+        ]
+      }
+    }
+
+    const error3 = "Message: {Errors: ['Request rate is large']}"
+    const error4 = "Message"
+
+    handleError(error, client, model, args => {
+      handleError(error2, client, model, args => {
+        handleError(error3, client, model, args => {
+          handleError(error4, client, model, args => {}).catch(e => {
+            expect(count).to.equal(3)
+            expect(e).to.equal('Message')
+            done()  
+          })
+        })
+      })
+    })
   })
 })
