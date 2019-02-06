@@ -1,6 +1,6 @@
 {
   "name": "@kth/kth-node-cosmos-db",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "description": "Node.js module for projects using Azure Cosmos Db.",
   "main": "index.js",
   "directories": {
