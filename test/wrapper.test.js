@@ -37,3 +37,124 @@ describe('Wrapper', () => {
     done()
   })
 })
+
+describe('Wrapper supported functions', () => {
+  const wrappedModel = wrap(Object.assign({}, model))
+  
+  it('findOneAndUpdate', async () => {
+    wrappedModel.__proto__.findOneAndUpdate = () => {}
+
+    let error
+    try {
+      await wrappedModel.findOneAndUpdate({}, {}, {})
+    } catch (e) {
+      error = e
+    }
+
+    expect(error).to.be.undefined
+  })
+
+  it('findById', async () => {
+    wrappedModel.__proto__.findById = () => {}
+
+    let error
+    try {
+      await wrappedModel.findById({}, {}, {})
+    } catch (e) {
+      error = e
+    }
+
+    expect(error).to.be.undefined
+  })
+
+  it('save', async () => {
+    wrappedModel.__proto__.save = () => {}
+
+    let error
+    try {
+      await wrappedModel.save({}, {}, {})
+    } catch (e) {
+      error = e
+    }
+
+    expect(error).to.be.undefined
+  })
+
+  it('update', async () => {
+    wrappedModel.__proto__.update = () => {}
+
+    let error
+    try {
+      await wrappedModel.update({}, {}, {})
+    } catch (e) {
+      error = e
+    }
+
+    expect(error).to.be.undefined
+  })
+  
+  it('updateOne', async () => {
+    wrappedModel.__proto__.updateOne = () => {}
+
+    let error
+    try {
+      await wrappedModel.updateOne({}, {}, {})
+    } catch (e) {
+      error = e
+    }
+
+    expect(error).to.be.undefined
+  })
+
+  it('updateMany', async () => {
+    wrappedModel.__proto__.updateMany = () => {}
+
+    let error
+    try {
+      await wrappedModel.updateMany({}, {}, {})
+    } catch (e) {
+      error = e
+    }
+
+    expect(error).to.be.undefined
+  })
+
+  it('findOne', async () => {
+    wrappedModel.__proto__.findOne = () => {}
+
+    let error
+    try {
+      await wrappedModel.findOne({}, {}, {})
+    } catch (e) {
+      error = e
+    }
+
+    expect(error).to.be.undefined
+  })
+
+  it('find', async () => {
+    wrappedModel.__proto__.find = () => {}
+
+    let error
+    try {
+      await wrappedModel.find({}, {}, {})
+    } catch (e) {
+      error = e
+    }
+
+    expect(error).to.be.undefined
+  })
+
+  it('remove', async () => {
+    wrappedModel.__proto__.remove = () => {}
+
+    let error
+    try {
+      await wrappedModel.remove({}, {}, {})
+    } catch (e) {
+      error = e
+    }
+
+    expect(error).to.be.undefined
+  })
+})
