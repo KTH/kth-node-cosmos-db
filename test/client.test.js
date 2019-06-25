@@ -23,7 +23,7 @@ const { initClient, getClient } = require('../lib/client')
 describe('Client', () => {
   it('Ask for config object if none is provided', done => {
     const client = initClient().catch(e => {
-      expect(e.message).to.equal("You need to pass a config object to the construct")
+      expect(e.message).to.equal("[COSMOS DB] You need to pass a config object to the construct")
       done()      
     })
   })
@@ -31,7 +31,7 @@ describe('Client', () => {
   it('Require specific fields in config object', done => {
     const client = initClient({}).catch(e => {
       expect(e.fields).to.equal("host, db, collections, password, username, maxThroughput")
-      expect(e.message).to.equal("One or more of the required config options is missing, please add these to the conf object")
+      expect(e.message).to.equal("[COSMOS DB] One or more of the required config options is missing, please add these to the conf object")
       done()      
     })
   })
@@ -40,7 +40,7 @@ describe('Client', () => {
     const config = {
       host: 'localhost',
       db: 'test',
-      collections: ['test'],
+      collections: [{ name: 'test', throughput: 1500 }, { name: 'test2'} ],
       password: '123',
       username: 'test',
       maxThroughput: 1000,
@@ -49,6 +49,42 @@ describe('Client', () => {
 
     const client = initClient(config).then(client => {
       expect(client).to.not.be.undefined
+      done()
+    })
+  })
+
+  it('The option for collections are only allowed to contain objects', done => {
+    const config = {
+      host: 'localhost',
+      db: 'test',
+      collections: [{ name: 'test', throughput: 1500 }, 'test2' ],
+      password: '123',
+      username: 'test',
+      maxThroughput: 1000,
+      log: mockLogger
+    }
+
+    initClient(config).catch(e => {
+      expect(e).to.not.be.undefined
+      expect(e.message).to.equal('[COSMOS DB] The collections option are only allowed to contain objects')
+      done()
+    })
+  })
+
+  it('Each object in the collections options must have a name attribute', done => {
+    const config = {
+      host: 'localhost',
+      db: 'test',
+      collections: [{ name: 'test', throughput: 1500 }, {} ],
+      password: '123',
+      username: 'test',
+      maxThroughput: 1000,
+      log: mockLogger
+    }
+
+    initClient(config).catch(e => {
+      expect(e).to.not.be.undefined
+      expect(e.message).to.equal('[COSMOS DB] One of the collection objects is missing a name')
       done()
     })
   })
@@ -67,4 +103,5 @@ describe('Client', () => {
       done()
     })
   })
+
 })

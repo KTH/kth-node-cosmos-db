@@ -22,7 +22,10 @@ By default this package wont be used when developing locally (using a local data
 {
   "host": "String",
   "db": "String",
-  "collections": "[String]",
+  "collections": "[{
+      name: String,
+      throughput: Number (optional)
+    }]",
   "defaultThroughput": "Number",
   "password": "String",
   "username": "String",
@@ -39,7 +42,7 @@ By default this package wont be used when developing locally (using a local data
 | db                 | The name of the database                                                                                                                          |     true | -       |
 | password           | Auth credentials                                                                                                                                  |     true | -       |
 | username           | Auth credentials                                                                                                                                  |     true | -       |
-| collections        | A array of the names of the collections                                                                                                           |     true | -       |
+| collections        | An Array of objects containing collection name and optional throughput                                                                            |     true | -       |
 | defaultThroughput  | The default throughput in RU/s which each collection will be created with. This is also the value each collection will return to after an import. |    false | 400     |
 | maxThroughput      | The maximum amount of RU/s a collection is allowed to reach                                                                                       |     true | -       |
 | throughputStepsize | The increase in RU/s when a write fails                                                                                                           |    false | 200     |
@@ -54,6 +57,7 @@ By default this package wont be used when developing locally (using a local data
 | updateAllCollectionsThroughput(throughput)             | Update all collections throughput to a value of choice                           |
 | listCollectionsWithThroughput()                        | List the name and throughput of each collection                                  |
 | getCollectionThroughput(collectionName)                | Get throughput of specific collection                                            |
+| resetThroughput()                                      | Reset throughput to default for each collection                                  |
 
 ---
 
@@ -74,16 +78,18 @@ initClient({
   db: config.db.db,
   defaultThroughput: 400,
   maxThroughput: 2000,
-  collections: Object.keys(models).map(key => {
-    return models[key].collection.name
-  }),
+  collections: [
+    { name: 'users', throughput: 800 },
+    { name: 'emails' }
+  ],
   logger: console
 })
 ```
+The collections option is an array of objects.
+Each object must have the name attribute while the throughput attribute is optional.
+The throughput attribute makes it possible to have different default throughputs for each collections.
+If no throughput attribute is added it will default to the defaultThroughput option.
 
-The collections is simply an array with the names of the collections which will be created by mongoose.
-
-In the code above one was able to import the mongoose models and iterate over each model to extract the collection name.
 
 ### Get Client
 
