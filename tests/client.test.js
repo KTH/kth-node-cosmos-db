@@ -25,7 +25,7 @@ describe('Client', () => {
       createClient()
     } catch (e) {
       expect(e.message).to.equal(
-        'kth-node-cosmos-db You need to pass a config object to the construct'
+        'kth-node-cosmos-db: You need to pass a config object to the construct'
       )
       done()
     }
