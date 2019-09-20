@@ -1,7 +1,7 @@
 'use strict'
 
 module.exports = {
-  initClient: require('./lib/client').initClient,
+  createClient: require('./lib/client').createClient,
   getClient: require('./lib/client').getClient,
   wrap: require('./lib/wrapper').wrap
 }

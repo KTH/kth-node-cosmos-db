@@ -1,13 +1,13 @@
+/* eslint-disable no-unused-expressions */
+/* eslint-disable no-multi-assign */
 /* eslint-env mocha */
-
-'use strict'
 
 const mockery = require('mockery')
 const expect = require('chai').expect
 const { model } = require('./mocks/model')
 
 const mockLogger = {}
-mockLogger.error = mockLogger.debug = mockLogger.info = mockLogger.warn = mockLogger.init = function () {}
+mockLogger.error = mockLogger.debug = mockLogger.info = mockLogger.warn = mockLogger.init = () => {}
 
 mockery.registerMock('documentdb', {})
 mockery.registerMock('kth-node-log', mockLogger)
@@ -15,9 +15,9 @@ mockery.registerMock('kth-node-log', mockLogger)
 const { wrap } = require('../lib/wrapper')
 
 describe('Wrapper', () => {
-  it ('Can wrap a model', done => {
-    process.env.NODE_ENV="development"
-    process.env.USE_COSMOS_DB=true
+  it('Can wrap a model', done => {
+    process.env.NODE_ENV = 'development'
+    process.env.USE_COSMOS_DB = true
 
     const copy = Object.assign({}, model)
 
@@ -26,9 +26,9 @@ describe('Wrapper', () => {
     done()
   })
 
-  it ('Dont wrap model if NODE_ENV="development"', done => {
-    process.env.NODE_ENV="development"
-    process.env.USE_COSMOS_DB=false
+  it('Dont wrap model if NODE_ENV="development"', done => {
+    process.env.NODE_ENV = 'development'
+    process.env.USE_COSMOS_DB = false
 
     const copy = Object.assign({}, model)
 
@@ -40,9 +40,9 @@ describe('Wrapper', () => {
 
 describe('Wrapper supported functions', () => {
   const wrappedModel = wrap(Object.assign({}, model))
-  
+
   it('findOneAndUpdate', async () => {
-    wrappedModel.__proto__.findOneAndUpdate = () => {}
+    Object.getPrototypeOf(wrappedModel).findOneAndUpdate = () => {}
 
     let error
     try {
@@ -55,7 +55,7 @@ describe('Wrapper supported functions', () => {
   })
 
   it('findById', async () => {
-    wrappedModel.__proto__.findById = () => {}
+    Object.getPrototypeOf(wrappedModel).findById = () => {}
 
     let error
     try {
@@ -68,7 +68,7 @@ describe('Wrapper supported functions', () => {
   })
 
   it('save', async () => {
-    wrappedModel.__proto__.save = () => {}
+    Object.getPrototypeOf(wrappedModel).save = () => {}
 
     let error
     try {
@@ -81,7 +81,7 @@ describe('Wrapper supported functions', () => {
   })
 
   it('update', async () => {
-    wrappedModel.__proto__.update = () => {}
+    Object.getPrototypeOf(wrappedModel).update = () => {}
 
     let error
     try {
@@ -92,9 +92,9 @@ describe('Wrapper supported functions', () => {
 
     expect(error).to.be.undefined
   })
-  
+
   it('updateOne', async () => {
-    wrappedModel.__proto__.updateOne = () => {}
+    Object.getPrototypeOf(wrappedModel).updateOne = () => {}
 
     let error
     try {
@@ -107,7 +107,7 @@ describe('Wrapper supported functions', () => {
   })
 
   it('updateMany', async () => {
-    wrappedModel.__proto__.updateMany = () => {}
+    Object.getPrototypeOf(wrappedModel).updateMany = () => {}
 
     let error
     try {
@@ -120,7 +120,7 @@ describe('Wrapper supported functions', () => {
   })
 
   it('findOne', async () => {
-    wrappedModel.__proto__.findOne = () => {}
+    Object.getPrototypeOf(wrappedModel).findOne = () => {}
 
     let error
     try {
@@ -133,7 +133,7 @@ describe('Wrapper supported functions', () => {
   })
 
   it('find', async () => {
-    wrappedModel.__proto__.find = () => {}
+    Object.getPrototypeOf(wrappedModel).find = () => {}
 
     let error
     try {
@@ -146,7 +146,7 @@ describe('Wrapper supported functions', () => {
   })
 
   it('remove', async () => {
-    wrappedModel.__proto__.remove = () => {}
+    Object.getPrototypeOf(wrappedModel).remove = () => {}
 
     let error
     try {

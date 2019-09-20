@@ -1,13 +1,15 @@
 {
   "name": "@kth/kth-node-cosmos-db",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "Node.js module for projects using Azure Cosmos Db.",
   "main": "index.js",
   "directories": {
     "lib": "lib"
   },
   "scripts": {
-    "test": "mocha test"
+    "test": "mocha tests/** --exit",
+    "postversion": "git push && git push --tags",
+    "build": "./build.sh"
   },
   "repository": {
     "type": "git",
@@ -25,13 +27,24 @@
   },
   "homepage": "https://github.com/KTH/kth-node-cosmos-db#readme",
   "devDependencies": {
+    "babel-eslint": "^10.0.2",
     "chai": "^4.2.0",
-    "mocha": "^5.2.0",
+    "eslint": "^5.15.3",
+    "eslint-config-airbnb": "^14.0.0",
+    "eslint-config-prettier": "^4.3.0",
+    "eslint-plugin-import": "^2.18.2",
+    "eslint-plugin-jsx-a11y": "^6.2.3",
+    "eslint-plugin-prettier": "^3.1.0",
+    "eslint-plugin-react": "^7.14.3",
+    "kth-node-log": "^3.0.2",
+    "mocha": "^6.2.0",
     "mockery": "^2.1.0",
-    "kth-node-log": "^3.0.2"
+    "mongodb": "^3.3.2",
+    "mongodb-core": "^3.2.7",
+    "prettier": "^1.18.2"
   },
   "dependencies": {
-    "documentdb": "^1.14.5"
+    "documentdb": "^1.15.3"
   },
   "peerDependencies": {
     "kth-node-log": "^3.0.2"
