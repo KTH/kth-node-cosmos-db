@@ -63,50 +63,39 @@ By default this package wont be used when developing locally (using a local data
 
 ## Usage
 
-### Init client
+### Create client
 
 Create your client by adding the following code to your server.js file:
 
 ```javascript
-const { initClient } = require('@kth/kth-node-cosmos-db')
+const { createClient } = require('@kth/kth-node-cosmos-db')
 const models = require('./models')
 
-initClient({
+createClient({
   username: config.db.username,
   password: config.db.password,
   host: config.db.host,
   db: config.db.db,
   defaultThroughput: 400,
   maxThroughput: 2000,
-  collections: [
-    { name: 'users', throughput: 800 },
-    { name: 'emails' }
-  ],
+  collections: [{ name: 'users', throughput: 800 }, { name: 'emails' }],
   logger: console
 })
 ```
+
 The collections option is an array of objects.
 Each object must have the name attribute while the throughput attribute is optional.
 The throughput attribute makes it possible to have different default throughputs for each collections.
 If no throughput attribute is added it will default to the defaultThroughput option.
 
-
 ### Get Client
 
 If one need to get the client instance to call a specific client function one will get it like this.
 
-One can also use the await syntax instead of then.
-
 ```javascript
 const { getClient } = require('kth-node-cosmos-db')
 
-// With .then()
-getClient().then(client => {
-  //Use client functions
-})
-
-// With await (function needs to be async)
-const client = await getClient()
+const client = getClient()
 ```
 
 ### Wrap mongoose model
@@ -134,10 +123,8 @@ module.exports = {
 
 ## Todo
 
-* Support more mongoose querys in the wrap function.
+- Support more mongoose querys in the wrap function.
 
 ## Done
 
-* Currently supporting find, findOne, findOneAndUpdate, update and save querys
-
-
+- Currently supporting find, findOne, findOneAndUpdate, update and save querys
