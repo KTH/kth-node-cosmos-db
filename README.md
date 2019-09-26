@@ -1,4 +1,4 @@
-# kth-node-cosmos-db
+# kth-node-cosmos-db ![Build](https://travis-ci.org/KTH/kth-node-cosmos-db.svg?branch=master 'Build')
 
 Node.js module for projects using Azure Cosmos Db.
 
