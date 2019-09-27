@@ -41,6 +41,23 @@ describe('Client', () => {
     }
   })
 
+  it('Require specific fields to not be undefined', done => {
+    try {
+      createClient({
+        host: undefined,
+        db: undefined,
+        collections: undefined,
+        password: undefined,
+        username: undefined,
+        maxThroughput: undefined
+      })
+    } catch (e) {
+      expect(e.message.includes('host, db, collections, password, username, maxThroughput')).to.be
+        .true
+      done()
+    }
+  })
+
   it('Can create client when correct config object is provided', done => {
     const config = {
       host: 'localhost',
