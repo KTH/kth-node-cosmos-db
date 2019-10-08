@@ -7,7 +7,7 @@
     "lib": "lib"
   },
   "scripts": {
-    "test": "mocha tests/** --exit",
+    "test": "mocha test/** --exit",
     "postversion": "git push && git push --tags",
     "build": "./build.sh"
   },

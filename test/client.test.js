@@ -21,6 +21,8 @@ const { createClient, getClient } = require('../lib/client')
 
 describe('Client', () => {
   it('Ask for config object if none is provided', done => {
+    process.env.NODE_ENV = 'production'
+
     try {
       createClient()
     } catch (e) {
@@ -32,6 +34,8 @@ describe('Client', () => {
   })
 
   it('Require specific fields in config object', done => {
+    process.env.NODE_ENV = 'production'
+
     try {
       createClient({})
     } catch (e) {
@@ -42,6 +46,8 @@ describe('Client', () => {
   })
 
   it('Require specific fields to not be undefined', done => {
+    process.env.NODE_ENV = 'production'
+
     try {
       createClient({
         host: undefined,
@@ -59,6 +65,8 @@ describe('Client', () => {
   })
 
   it('Can create client when correct config object is provided', done => {
+    process.env.NODE_ENV = 'production'
+
     const config = {
       host: 'localhost',
       db: 'test',
@@ -74,7 +82,34 @@ describe('Client', () => {
     done()
   })
 
+  it('Dont break when calling init on createClient in development', done => {
+    process.env.NODE_ENV = 'development'
+
+    const config = {
+      host: 'localhost',
+      db: 'test',
+      collections: [{ name: 'test', throughput: 1500 }, { name: 'test2' }],
+      password: '123',
+      username: 'test',
+      maxThroughput: 1000
+    }
+
+    const client = createClient(config)
+    let error
+
+    try {
+      client.init()
+    } catch (e) {
+      error = e
+    }
+
+    expect(error).to.be.undefined
+    done()
+  })
+
   it('The option for collections are only allowed to contain objects', done => {
+    process.env.NODE_ENV = 'production'
+
     const config = {
       host: 'localhost',
       db: 'test',
@@ -91,11 +126,13 @@ describe('Client', () => {
       expect(e.message).to.equal(
         'kth-node-cosmos-db: The collections option are only allowed to contain objects'
       )
-      done()
     }
+    done()
   })
 
   it('Each object in the collections options must have a name attribute', done => {
+    process.env.NODE_ENV = 'production'
+
     const config = {
       host: 'localhost',
       db: 'test',
