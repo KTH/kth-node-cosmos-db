@@ -80,7 +80,7 @@ createClient({
   maxThroughput: 2000,
   collections: [{ name: 'users', throughput: 800 }, { name: 'emails' }],
   logger: console
-})
+}).init()
 ```
 
 The collections option is an array of objects.
