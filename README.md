@@ -31,8 +31,7 @@ By default this package wont be used when developing locally (using a local data
   "username": "String",
   "maxThroughput": "Number",
   "throughputStepsize": "Number",
-  "batchSize": "Number",
-  "logger": "Object"
+  "batchSize": "Number"
 }
 ```
 
