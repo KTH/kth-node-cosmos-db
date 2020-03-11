@@ -7,8 +7,9 @@
     "lib": "lib"
   },
   "scripts": {
-    "test": "NODE_ENV=development && jest",
-    "test:watch": "NODE_ENV=development && jest --watchAll",
+    "test": "NODE_ENV=development jest",
+    "test:watch": "NODE_ENV=development jest --watch",
+    "test:coverage": "NODE_ENV=development JEST_MODE=coverage jest --collectCoverage",
     "postversion": "git push && git push --tags",
     "build": "./build.sh"
   },

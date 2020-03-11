@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Public function wrap() - when called with valid Model parameter - overloads find() exactly as expected 1`] = `
+exports[`Public function wrap() - when called with valid Model parameter - overloads find() exactly as expected (see snapshot) 1`] = `
 "async function wrapper(...args) {
     let result;
     const client = await getClient();

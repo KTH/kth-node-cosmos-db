@@ -2,14 +2,9 @@
 
 jest.mock('kth-node-log')
 
-const { getDummyMongooseModel } = require('./testlib')
+const { Environment, getDummyMongooseModel } = require('./testlib')
 
 const { createClient, getClient, wrap } = require('./')
-
-const Global = {}
-
-const MODE_DEVELOPMENT = 'development'
-const MODE_PRODUCTION = 'production'
 
 const CLIENT_METHODS = [
   'increaseCollectionThroughput',
@@ -22,20 +17,20 @@ const CLIENT_METHODS = [
 ]
 
 describe('In module "kth-node-cosmos-db" - when seamlessly replacing old version 3.x', () => {
-  beforeAll(storeProcessEnv)
+  beforeAll(Environment.saveState)
 
   runTestsAboutClientFunctions()
   runTestsAboutWrap()
 
-  afterAll(restoreProcessEnv)
+  afterAll(Environment.restoreState)
 })
 
 function runTestsAboutClientFunctions() {
   describe('- the client function/s', () => {
     testFunctionExport(createClient, 'createClient() ')
     testFunctionExport(getClient, 'getClient() ')
-    runTestsAboutOutputOfClientFunctions(MODE_DEVELOPMENT)
-    runTestsAboutOutputOfClientFunctions(MODE_PRODUCTION)
+    runTestsAboutOutputOfClientFunctions(Environment.MODE_DEVELOPMENT)
+    runTestsAboutOutputOfClientFunctions(Environment.MODE_PRODUCTION)
   })
 }
 
@@ -50,13 +45,13 @@ function runTestsAboutOutputOfClientFunctions(mode) {
   }
 
   describe(`- when used in ${mode} mode`, () => {
-    beforeAll(() => simulateEnvironment(mode))
+    beforeAll(() => Environment.simulate(mode))
 
     const wrongOrderTestSuffix =
-      mode === MODE_DEVELOPMENT ? 'returns a dummy client object' : 'returns nothing'
+      mode === Environment.MODE_DEVELOPMENT ? 'returns a dummy client object' : 'returns nothing'
     it(`- getClient() ${wrongOrderTestSuffix} if used before createClient()`, () => {
       const result = getClient()
-      if (mode === MODE_DEVELOPMENT) {
+      if (mode === Environment.MODE_DEVELOPMENT) {
         expectToBeDummyClientObject(result)
       } else {
         expect(result).toBeUndefined()
@@ -64,9 +59,9 @@ function runTestsAboutOutputOfClientFunctions(mode) {
     })
 
     const noArgumentTestSuffix =
-      mode === MODE_DEVELOPMENT ? 'returns a dummy client object' : 'FAILS'
+      mode === Environment.MODE_DEVELOPMENT ? 'returns a dummy client object' : 'FAILS'
     it(`w/o arguments - createClient() ${noArgumentTestSuffix}`, () => {
-      if (mode === MODE_DEVELOPMENT) {
+      if (mode === Environment.MODE_DEVELOPMENT) {
         const result = createClient()
         expectToBeDummyClientObject(result)
       } else {
@@ -75,11 +70,11 @@ function runTestsAboutOutputOfClientFunctions(mode) {
     })
 
     const validArgumentTestSuffix =
-      mode === MODE_DEVELOPMENT ? 'returns a dummy object' : 'returns a real object'
+      mode === Environment.MODE_DEVELOPMENT ? 'returns a dummy object' : 'returns a real object'
     it(`with valid arguments - createClient() ${validArgumentTestSuffix}`, () => {
       const result = createClient(validTestOptions)
 
-      if (mode === MODE_DEVELOPMENT) {
+      if (mode === Environment.MODE_DEVELOPMENT) {
         expectToBeDummyClientObject(result)
       } else {
         expectToBeRealClientObject(result)
@@ -89,14 +84,14 @@ function runTestsAboutOutputOfClientFunctions(mode) {
     it(`- getClient() ${validArgumentTestSuffix}`, () => {
       const result = getClient()
 
-      if (mode === MODE_DEVELOPMENT) {
+      if (mode === Environment.MODE_DEVELOPMENT) {
         expectToBeDummyClientObject(result)
       } else {
         expectToBeRealClientObject(result)
       }
     })
 
-    if (mode === MODE_PRODUCTION) {
+    if (mode === Environment.MODE_PRODUCTION) {
       it('- getClient() returns same object if called twice', () => {
         const result1 = getClient()
         const result2 = getClient()
@@ -134,14 +129,14 @@ function runTestsAboutWrap() {
   describe('- wrap()', () => {
     testFunctionExport(wrap)
 
-    runTestsAboutOutputOfWrap(MODE_DEVELOPMENT)
-    runTestsAboutOutputOfWrap(MODE_PRODUCTION)
+    runTestsAboutOutputOfWrap(Environment.MODE_DEVELOPMENT)
+    runTestsAboutOutputOfWrap(Environment.MODE_PRODUCTION)
   })
 }
 
 function runTestsAboutOutputOfWrap(mode) {
   describe(`- when called in ${mode} mode`, () => {
-    beforeAll(() => simulateEnvironment(mode))
+    beforeAll(() => Environment.simulate(mode))
 
     it('w/o arguments - returns nothing', () => {
       const result = wrap()
@@ -154,7 +149,9 @@ function runTestsAboutOutputOfWrap(mode) {
     })
 
     const modelTestSuffix =
-      mode === MODE_DEVELOPMENT ? 'returns input w/o any changes' : 'changes input in place'
+      mode === Environment.MODE_DEVELOPMENT
+        ? 'returns input w/o any changes'
+        : 'changes input in place'
 
     it(`with argument of type Model - ${modelTestSuffix}`, () => {
       const input = getDummyMongooseModel()
@@ -165,7 +162,7 @@ function runTestsAboutOutputOfWrap(mode) {
 
       expect(output).toBe(input)
 
-      if (mode === MODE_DEVELOPMENT) {
+      if (mode === Environment.MODE_DEVELOPMENT) {
         expect(inputKeys).toEqual(outputKeys)
       } else {
         expect(inputKeys).not.toEqual(outputKeys)
@@ -181,26 +178,4 @@ function testFunctionExport(callback, prefix = '') {
   it(`${prefix}is still a function`, () => {
     expect(callback).toBeFunction()
   })
-}
-
-function storeProcessEnv() {
-  Global.NODE_ENV = process.env.NODE_ENV
-  Global.USE_COSMOS_DB = process.env.USE_COSMOS_DB
-}
-
-function restoreProcessEnv() {
-  process.env.NODE_ENV = Global.NODE_ENV
-  process.env.USE_COSMOS_DB = Global.USE_COSMOS_DB
-}
-
-function simulateEnvironment(mode) {
-  switch (mode) {
-    case MODE_DEVELOPMENT:
-    case MODE_PRODUCTION:
-      process.env.NODE_ENV = mode
-      process.env.USE_COSMOS_DB = 'false'
-      break
-    default:
-      throw new Error(`Unknown environment mode (${mode})`)
-  }
 }

@@ -1,9 +1,11 @@
 const collectAllInternalMethods = require('./collectAllInternalMethods')
-const getObjectKeysWithDifferentValues = require('./getObjectKeysWithDifferentValues')
+const Environment = require('./Environment')
 const getDummyMongooseModel = require('./getDummyMongooseModel')
+const getObjectKeysWithDifferentValues = require('./getObjectKeysWithDifferentValues')
 
 module.exports = {
   collectAllInternalMethods,
-  getObjectKeysWithDifferentValues,
-  getDummyMongooseModel
+  Environment,
+  getDummyMongooseModel,
+  getObjectKeysWithDifferentValues
 }
