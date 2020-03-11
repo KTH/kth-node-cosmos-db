@@ -19,6 +19,6 @@
   },
   "env": {
     "node": true,
-    "jest": true
+    "jest/globals": true
   }
 }

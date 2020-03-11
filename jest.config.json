@@ -1,5 +1,0 @@
-{
-  "jest": {
-    "testMatch": [ "lib/**/*.[jt]s?(x)" ]
-  }
-}
