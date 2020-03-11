@@ -1,7 +1,10 @@
 'use strict'
 
+const { createClient, getClient } = require('./lib/cosmosClientWrapper')
+const { wrap } = require('./lib/mongooseModelWrapper')
+
 module.exports = {
-  createClient: require('./lib/client').createClient,
-  getClient: require('./lib/client').getClient,
-  wrap: require('./lib/mongooseModelWrapper').wrap
+  createClient,
+  getClient,
+  wrap
 }

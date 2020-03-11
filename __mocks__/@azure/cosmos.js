@@ -1,17 +1,22 @@
 /* eslint-disable no-use-before-define */
 
 /**
- * Structural information about CosmosClient taken from API report at
+ * Structural information about CosmosClient was taken from "API report" at
  * https://github.com/Azure/azure-sdk-for-js/blob/master/sdk/cosmosdb/cosmos/review/cosmos.api.md
  */
 
 class CosmosClient {
   constructor() {
     const client = this
+
     this.database = id => mockDatabase({ client, id })
     this.databases = mockDatabases({ client })
     this.offer = id => mockOffer({ client, id })
     this.offers = mockOffers({ client })
+
+    this.getDatabaseAccount = jest.fn()
+    this.getReadEndpoint = jest.fn()
+    this.getWriteEndpoint = jest.fn()
   }
 }
 
@@ -62,10 +67,24 @@ function mockContainers({ client, database }) {
 
 function mockContainer({ client, database, id, throughput }) {
   const container = {
-    _client: client,
     database,
     id,
-    _throughput: throughput
+
+    _client: client,
+    _throughput: throughput,
+
+    conflict: jest.fn(),
+    conflicts: jest.fn(),
+    delete: jest.fn(),
+    getQueryPlan: jest.fn(),
+    item: jest.fn(),
+    items: jest.fn(),
+    read: jest.fn(),
+    readPartitionKeyDefinition: jest.fn(),
+    readPartitionKeyRanges: jest.fn(),
+    replace: jest.fn(),
+    scripts: jest.fn(),
+    url: jest.fn()
   }
 
   return container
@@ -156,16 +175,4 @@ function mockOfferDefinition({ client, id }) {
 //       }
 //     }
 //   }
-// }
-
-// /*
-// TODO implement test in Jest:
-// CosmosClient.prototype.queryOffers = () => {
-//   return {
-//     toArray: cb => cb(undefined, [{ content: { offerThroughput: 400 } }])
-//   }
-// }
-// */
-// module.exports = {
-//   CosmosClient
 // }
