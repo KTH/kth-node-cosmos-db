@@ -9,7 +9,8 @@
   "scripts": {
     "test": "NODE_ENV=development jest",
     "test:watch": "NODE_ENV=development jest --watch",
-    "test:coverage": "NODE_ENV=development JEST_MODE=coverage jest --collectCoverage",
+    "test:watch:notify": "NODE_ENV=development jest --watch --notify",
+    "test:coverage": "NODE_ENV=development JEST_MODE=coverage jest --collectCoverage --detectOpenHandles",
     "postversion": "git push && git push --tags",
     "build": "./build.sh"
   },

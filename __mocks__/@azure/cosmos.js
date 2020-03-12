@@ -6,8 +6,10 @@
  */
 
 class CosmosClient {
-  constructor() {
+  constructor(options) {
     const client = this
+
+    this._options = options
 
     this.database = id => mockDatabase({ client, id })
     this.databases = mockDatabases({ client })
@@ -22,6 +24,12 @@ class CosmosClient {
 
 module.exports = {
   CosmosClient
+}
+
+const Global = {
+  databases: {},
+  containers: {},
+  offers: {}
 }
 
 function mockDatabases({ client }) {
@@ -39,15 +47,17 @@ function mockDatabases({ client }) {
 }
 
 function mockDatabase({ client, id }) {
-  const database = {
-    client,
-    id
+  if (Global.databases[id] == null) {
+    Global.databases[id] = {
+      client,
+      id
+    }
+
+    Global.databases[id].container = id2 => mockContainer({ client, id: id2 })
+    Global.databases[id].containers = mockContainers({ client, database: Global.databases[id] })
   }
 
-  database.container = id2 => mockContainer({ client, id: id2 })
-  database.containers = mockContainers({ client, database })
-
-  return database
+  return Global.databases[id]
 }
 
 function mockContainers({ client, database }) {
@@ -66,28 +76,34 @@ function mockContainers({ client, database }) {
 }
 
 function mockContainer({ client, database, id, throughput }) {
-  const container = {
-    database,
-    id,
-
-    _client: client,
-    _throughput: throughput,
-
-    conflict: jest.fn(),
-    conflicts: jest.fn(),
-    delete: jest.fn(),
-    getQueryPlan: jest.fn(),
-    item: jest.fn(),
-    items: jest.fn(),
-    read: jest.fn(),
-    readPartitionKeyDefinition: jest.fn(),
-    readPartitionKeyRanges: jest.fn(),
-    replace: jest.fn(),
-    scripts: jest.fn(),
-    url: jest.fn()
+  if (Global.containers[database] == null) {
+    Global.containers[database] = {}
   }
 
-  return container
+  if (Global.containers[database][id] == null) {
+    Global.containers[database][id] = {
+      database,
+      id,
+
+      _client: client,
+      _throughput: throughput,
+
+      conflict: jest.fn(),
+      conflicts: jest.fn(),
+      delete: jest.fn(),
+      getQueryPlan: jest.fn(),
+      item: jest.fn(),
+      items: jest.fn(),
+      read: jest.fn(),
+      readPartitionKeyDefinition: jest.fn(),
+      readPartitionKeyRanges: jest.fn(),
+      replace: jest.fn(),
+      scripts: jest.fn(),
+      url: jest.fn()
+    }
+  }
+
+  return Global.containers[database][id]
 }
 
 function mockOffers({ client }) {
@@ -109,15 +125,17 @@ function mockOffers({ client }) {
 }
 
 function mockOffer({ client, id }) {
-  const offer = {
-    client,
-    id,
-    read: jest.fn(),
-    replace: jest.fn(),
-    url: jest.fn()
+  if (Global.offers[id] == null) {
+    Global.offers[id] = {
+      client,
+      id,
+      read: jest.fn(),
+      replace: jest.fn(),
+      url: jest.fn()
+    }
   }
 
-  return offer
+  return Global.offers[id]
 }
 
 function mockOfferDefinition({ client, id }) {

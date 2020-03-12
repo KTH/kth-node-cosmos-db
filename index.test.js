@@ -16,7 +16,7 @@ const CLIENT_METHODS = [
   'init'
 ]
 
-describe('In module "kth-node-cosmos-db" - when seamlessly replacing old version 3.x', () => {
+describe('BACKWARD COMPATIBILITY: In module "kth-node-cosmos-db" - when seamlessly replacing old version 3.x', () => {
   beforeAll(Environment.saveState)
 
   runTestsAboutClientFunctions()
