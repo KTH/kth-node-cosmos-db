@@ -50,7 +50,8 @@
     "mongodb": "^3.5.4",
     "mongodb-core": "^3.2.7",
     "mongoose": "^5.9.4",
-    "prettier": "^1.19.1"
+    "prettier": "^1.19.1",
+    "uuid": "^7.0.2"
   },
   "dependencies": {
     "@azure/cosmos": "^3.6.2",

@@ -1,8 +1,10 @@
 /* eslint-disable no-use-before-define */
 
+// @ts-check
+
 jest.mock('kth-node-log')
 
-const { Environment, getDummyMongooseModel } = require('./testlib')
+const { Environment, getDummyMongooseModel, testBasicFunctionExport } = require('./testlib')
 
 const { createClient, getClient, wrap } = require('./')
 
@@ -27,8 +29,8 @@ describe('BACKWARD COMPATIBILITY: In module "kth-node-cosmos-db" - when seamless
 
 function runTestsAboutClientFunctions() {
   describe('- the client function/s', () => {
-    testFunctionExport(createClient, 'createClient() ')
-    testFunctionExport(getClient, 'getClient() ')
+    testBasicFunctionExport(createClient, 'createClient()')
+    testBasicFunctionExport(getClient, 'getClient()')
     runTestsAboutOutputOfClientFunctions(Environment.MODE_DEVELOPMENT)
     runTestsAboutOutputOfClientFunctions(Environment.MODE_PRODUCTION)
   })
@@ -62,6 +64,7 @@ function runTestsAboutOutputOfClientFunctions(mode) {
       mode === Environment.MODE_DEVELOPMENT ? 'returns a dummy client object' : 'FAILS'
     it(`w/o arguments - createClient() ${noArgumentTestSuffix}`, () => {
       if (mode === Environment.MODE_DEVELOPMENT) {
+        // @ts-ignore
         const result = createClient()
         expectToBeDummyClientObject(result)
       } else {
@@ -127,7 +130,7 @@ function expectToBeDummyClientObject(result) {
 
 function runTestsAboutWrap() {
   describe('- wrap()', () => {
-    testFunctionExport(wrap)
+    testBasicFunctionExport(wrap)
 
     runTestsAboutOutputOfWrap(Environment.MODE_DEVELOPMENT)
     runTestsAboutOutputOfWrap(Environment.MODE_PRODUCTION)
@@ -139,6 +142,7 @@ function runTestsAboutOutputOfWrap(mode) {
     beforeAll(() => Environment.simulate(mode))
 
     it('w/o arguments - returns nothing', () => {
+      // @ts-ignore
       const result = wrap()
       expect(result).toBeUndefined()
     })
@@ -168,14 +172,5 @@ function runTestsAboutOutputOfWrap(mode) {
         expect(inputKeys).not.toEqual(outputKeys)
       }
     })
-  })
-}
-
-function testFunctionExport(callback, prefix = '') {
-  it(`${prefix}is still available`, () => {
-    expect(callback).toBeDefined()
-  })
-  it(`${prefix}is still a function`, () => {
-    expect(callback).toBeFunction()
   })
 }
