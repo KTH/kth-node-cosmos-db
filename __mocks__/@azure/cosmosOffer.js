@@ -36,7 +36,17 @@ function mockOffer({ client, containerResourceId, throughput }) {
     const resourceId = uuid()
 
     const replace = offerDefinition => {
-      Global.offersPerClient[clientId][containerResourceId].content = { ...offerDefinition.content }
+      assert(
+        offerDefinition != null && typeof offerDefinition === 'object',
+        'Mockup: Invalid offer definition'
+      )
+      const { content } = offerDefinition
+      assert(content != null && typeof content === 'object', 'Mockup: Invalid offer definition')
+      assert(
+        content.offerThroughput == null || content.offerThroughput > 0,
+        'Mockup: Invalid throughput in offer definition'
+      )
+      Global.offersPerClient[clientId][containerResourceId].content = { ...content }
     }
 
     const newOffer = {

@@ -23,8 +23,8 @@ module.exports = {
 const Global = { databasesPerClient: {} }
 
 function mockDatabase({ client, name }) {
-  assert(client != null && typeof client === 'object')
-  assert(typeof name === 'string' && name !== '')
+  assert(client != null && typeof client === 'object', 'Mockup: Invalid client')
+  assert(typeof name === 'string' && name !== '', 'Mockup: Invalid database name')
 
   const clientId = client.__mock.id
 

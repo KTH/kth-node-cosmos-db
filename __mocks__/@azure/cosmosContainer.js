@@ -23,10 +23,10 @@ module.exports = {
 const Global = { containersPerClientAndDatabase: {} }
 
 function mockContainer({ client, database, name, throughput }) {
-  assert(client != null && typeof client === 'object')
-  assert(database != null && typeof database === 'object')
-  assert(typeof name === 'string' && name !== '')
-  assert(typeof throughput === 'number' && throughput > 0)
+  assert(client != null && typeof client === 'object', 'Mockup: Invalid client')
+  assert(database != null && typeof database === 'object', 'Mockup: Invalid database')
+  assert(typeof name === 'string' && name !== '', 'Mockup: Invalid container name')
+  assert(typeof throughput === 'number' && throughput > 0, 'Mockup: Invalid throughput')
 
   const clientId = client.__mock.id
   const databaseId = database.id
@@ -71,9 +71,9 @@ function mockContainer({ client, database, name, throughput }) {
 }
 
 function findMockedContainer({ client, database, name }) {
-  assert(client != null && typeof client === 'object')
-  assert(database != null && typeof database === 'object')
-  assert(typeof name === 'string' && name !== '', `Invalid argument (type "${typeof name}")`)
+  assert(client != null && typeof client === 'object', 'Mockup: Invalid client')
+  assert(database != null && typeof database === 'object', 'Mockup: Invalid database')
+  assert(typeof name === 'string' && name !== '', 'Mockup: Invalid container name')
 
   const clientId = client.__mock.id
   const databaseId = database.id
