@@ -1,4 +1,4 @@
-/* eslint-disable no-use-before-define */
+/* eslint no-use-before-define: ["error", "nofunc"] */
 
 /**
  * "Each Azure Cosmos DB account supports multiple

@@ -1,22 +1,29 @@
 # kth-node-cosmos-db ![Build](https://travis-ci.org/KTH/kth-node-cosmos-db.svg?branch=master 'Build')
 
-Node.js module for projects using Azure Cosmos Db.
+Our Node.js applications at KTH (Stockholm) use Mongoose to access CosmosDB in Azure.
+This module is a wrapper around "@azure/cosmosdb" designed for those applications.
+
+## Intended use
+
+Using this module instead of directly including "@azure/cosmosdb" into a project has the following benefits:
+
+- Any Mongoose action will automatically manage Azure's provision throughput, too.
+  _Especially when a "Too many requests" error occurs during a database action, the wrapper will increase the throughput of the related collection with a fixed amount and then retry the action. The "Too many requests" error will mainly occur when importing foreign data, e.g. into an API project. When an import is done, the application should reset all collections throughput to their default value using `resetThroughput()`._
+- The module can also set a batchSize to avoid Cursor timeout errors during find-operations.
+
+## Remarks on local development
+
+By default, the wrapper won't be active during local development, e.g. when using a local database. The application still works but it will produce logging outputs like "Not available in native MongoDB".
+
+Set the environment variable `USE_COSMOS_DB=true`, e.g. in the .env file, if you wish to use the full wrapper functionality locally.
 
 ## How it works
 
-When an "Too many requests" error ocurs this module will increase the throughput of the specific collection with a set amount and then try the query again.
+1. `createClient()` prepares the needed database and it's collections in Azure.
+1. `wrap()` prepares any Mongoose model and adds the automatic throughput management.
+1. `getClient()` gives access to some methods for manually controlling the throughput management, especially `resetThroughput()`.
 
-When the import is done the module will reset all collections throughput to their default value.
-
-The "Too many requests" error will mainly ocur when importing data.
-
-The module can also set the batchSize to avoid Cursor timeout errors.
-
-## Local development
-
-By default this package wont be used when developing locally (using a local database). If one wish to use this package when developing locally one can add `USE_COSMOS_DB=true` in the .ENV file.
-
-## Client Params
+### Client parameters
 
 ```json
 {
@@ -35,19 +42,19 @@ By default this package wont be used when developing locally (using a local data
 }
 ```
 
-| Name               | Description                                                                                                                                       | Required | Default |
-| ------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------ | -------: | ------- |
-| host               | The hostname of the database                                                                                                                      |     true | -       |
-| db                 | The name of the database                                                                                                                          |     true | -       |
-| password           | Auth credentials                                                                                                                                  |     true | -       |
-| username           | Auth credentials                                                                                                                                  |     true | -       |
-| collections        | An Array of objects containing collection name and optional throughput                                                                            |     true | -       |
-| defaultThroughput  | The default throughput in RU/s which each collection will be created with. This is also the value each collection will return to after an import. |    false | 400     |
-| maxThroughput      | The maximum amount of RU/s a collection is allowed to reach                                                                                       |     true | -       |
-| throughputStepsize | The increase in RU/s when a write fails                                                                                                           |    false | 200     |
-| batchSize          | BatchSize of querys (Decrease this in order to avoid cursor timeout)                                                                              |    false | 10000   |
+| Name               | Description                                                                                                                                           | Required | Default |
+| ------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------- | -------: | ------- |
+| host               | The hostname of the database                                                                                                                          |     true | -       |
+| db                 | The name of the database                                                                                                                              |     true | -       |
+| password           | Auth credentials                                                                                                                                      |     true | -       |
+| username           | Auth credentials                                                                                                                                      |     true | -       |
+| collections        | An Array of objects containing collection name and optional throughput                                                                                |     true | -       |
+| defaultThroughput  | The default throughput in RU/s which each collection will be created with.<br/>This is also the value each collection will return to after an import. |    false | 400     |
+| maxThroughput      | The maximum amount of RU/s a collection is allowed to reach                                                                                           |     true | -       |
+| throughputStepsize | The increase in RU/s when a write fails                                                                                                               |    false | 200     |
+| batchSize          | BatchSize of querys (Decrease this in order to avoid cursor timeout)                                                                                  |    false | 10000   |
 
-## Client functions
+### Client methods
 
 | Name                                                   | Description                                                                      |
 | ------------------------------------------------------ | :------------------------------------------------------------------------------- |
@@ -58,19 +65,17 @@ By default this package wont be used when developing locally (using a local data
 | getCollectionThroughput(collectionName)                | Get throughput of specific collection                                            |
 | resetThroughput()                                      | Reset throughput to default for each collection                                  |
 
----
-
 ## Usage
 
-### Create client
+### `createClient()`
 
-Create your client by adding the following code to your server.js file:
+Use `createClient()` on application startup, e.g. in file "server.js":
 
-```javascript
+```js
 const { createClient } = require('@kth/kth-node-cosmos-db')
 const models = require('./models')
 
-createClient({
+const client = createClient({
   username: config.db.username,
   password: config.db.password,
   host: config.db.host,
@@ -79,7 +84,9 @@ createClient({
   maxThroughput: 2000,
   collections: [{ name: 'users', throughput: 800 }, { name: 'emails' }],
   logger: console
-}).init()
+})
+
+client.init()
 ```
 
 The collections option is an array of objects.
@@ -99,7 +106,7 @@ const client = getClient()
 
 ### Wrap mongoose model
 
-When defining a mongoose model dont forget to wrap the model before exporting it.
+When defining a mongoose model don't forget to wrap the model before exporting it.
 
 This allows the db to use retry functionality when Error 'Too many requests'.
 

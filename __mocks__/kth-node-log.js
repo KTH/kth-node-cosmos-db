@@ -1,4 +1,4 @@
-/* eslint-disable no-use-before-define */
+/* eslint no-use-before-define: ["error", "nofunc"] */
 
 const info = jest.fn()
 const error = jest.fn()

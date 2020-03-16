@@ -1,4 +1,6 @@
-/* eslint-disable no-use-before-define */
+/* eslint no-use-before-define: ["error", "nofunc"] */
+
+// @ts-check
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 const mongoose = require('mongoose')

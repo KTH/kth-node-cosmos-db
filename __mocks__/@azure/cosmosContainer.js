@@ -1,4 +1,4 @@
-/* eslint-disable no-use-before-define */
+/* eslint no-use-before-define: ["error", "nofunc"] */
 
 /**
  * "A collection is a container of JSON documents and associated JavaScript

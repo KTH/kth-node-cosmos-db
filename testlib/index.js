@@ -1,3 +1,7 @@
+/* eslint no-use-before-define: ["error", "nofunc"] */
+
+// @ts-check
+
 const collectAllInternalMethods = require('./collectAllInternalMethods')
 const Environment = require('./Environment')
 const getDummyMongooseModel = require('./getDummyMongooseModel')

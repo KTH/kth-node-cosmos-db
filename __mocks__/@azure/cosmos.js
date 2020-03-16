@@ -1,4 +1,4 @@
-/* eslint-disable no-use-before-define */
+/* eslint no-use-before-define: ["error", "nofunc"] */
 
 /**
  * Structural information about CosmosClient was taken from "API report" at
@@ -16,25 +16,27 @@ const { mockDatabases, findMockedDatabase } = require('./cosmosDatabase')
 const { mockOffers, findMockedOffer } = require('./cosmosOffer')
 const { throwReducedMockupApiError } = require('./cosmosError')
 
-class CosmosClient {
-  constructor(options) {
-    assert(options != null && typeof options === 'object')
-
-    const client = this
-    this.__mock = { options, id: uuid() }
-
-    this.database = databaseName => findMockedDatabase({ client, name: databaseName })
-    this.databases = mockDatabases({ client })
-
-    this.offer = offerResourceId => findMockedOffer({ client, offerResourceId })
-    this.offers = mockOffers({ client })
-
-    this.getDatabaseAccount = throwReducedMockupApiError
-    this.getReadEndpoint = throwReducedMockupApiError
-    this.getWriteEndpoint = throwReducedMockupApiError
-  }
+module.exports = {
+  CosmosClient: _hoistDeclaration()
 }
 
-module.exports = {
-  CosmosClient
+function _hoistDeclaration() {
+  return class CosmosClient {
+    constructor(options) {
+      assert(options != null && typeof options === 'object')
+
+      const client = this
+      this.__mock = { options, id: uuid() }
+
+      this.database = databaseName => findMockedDatabase({ client, name: databaseName })
+      this.databases = mockDatabases({ client })
+
+      this.offer = offerResourceId => findMockedOffer({ client, offerResourceId })
+      this.offers = mockOffers({ client })
+
+      this.getDatabaseAccount = throwReducedMockupApiError
+      this.getReadEndpoint = throwReducedMockupApiError
+      this.getWriteEndpoint = throwReducedMockupApiError
+    }
+  }
 }

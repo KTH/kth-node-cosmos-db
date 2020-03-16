@@ -1,4 +1,6 @@
-/* eslint-disable no-use-before-define */
+/* eslint no-use-before-define: ["error", "nofunc"] */
+
+// @ts-check
 
 const MODE_DEVELOPMENT = 'development'
 const MODE_PRODUCTION = 'production'
