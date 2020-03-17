@@ -1,20 +1,25 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Public function wrap() - when called with valid Model parameter - overloads find() exactly as expected (see snapshot) 1`] = `
+exports[`Mongoose model wrapper function wrap() - when looking at the code of single methods in production mode - overloads find() matching snapshot 1`] = `
 "async function wrapper(...args) {
-    let result;
-    const client = await getClient();
+  let result;
+  const methodPrototype = Object.getPrototypeOf(this)[name];
+  const client = await getClient();
+  const method = this[name];
 
-    try {
-      result = await this.__proto__[name].apply(this, args);
+  try {
+    const query = methodPrototype.apply(this, args);
 
-      if (client.batchSize) {
-        result = result.batchSize(client.batchSize);
-      }
-    } catch (error) {
-      result = handleError(error, client, this, this[name], args);
+    if (client != null && client.batchSize) {
+      query.batchSize(client.batchSize);
     }
 
-    return result;
-  }"
+    result = await query;
+  } catch (error) {
+    result = handleError(error, client, this, method, args);
+  }
+
+  return result;
+}
+"
 `;

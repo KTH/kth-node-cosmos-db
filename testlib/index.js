@@ -4,7 +4,7 @@
 
 const collectAllInternalMethods = require('./collectAllInternalMethods')
 const Environment = require('./Environment')
-const getDummyMongooseModel = require('./getDummyMongooseModel')
+const Mongoose = require('./Mongoose')
 const getObjectKeysWithDifferentValues = require('./getObjectKeysWithDifferentValues')
 const removeCodeCoveragePollution = require('./removeCodeCoveragePollution')
 const testBasicFunctionExport = require('./testBasicFunctionExport')
@@ -12,7 +12,7 @@ const testBasicFunctionExport = require('./testBasicFunctionExport')
 module.exports = {
   collectAllInternalMethods,
   Environment,
-  getDummyMongooseModel,
+  Mongoose,
   getObjectKeysWithDifferentValues,
   removeCodeCoveragePollution,
   testBasicFunctionExport
