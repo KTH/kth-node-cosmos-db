@@ -1,3 +1,4 @@
+/* eslint-disable max-classes-per-file */
 /* eslint no-use-before-define: ["error", "nofunc"] */
 
 /**
@@ -22,6 +23,28 @@ module.exports = {
 
 const Global = { containersPerClientAndDatabase: {} }
 
+class Container {
+  constructor({ database, name, client, throughput, offer, resourceId }) {
+    this.database = database
+    this.id = name
+
+    this.__mock = { client, throughput, offer, resourceId }
+
+    this.conflict = throwReducedMockupApiError
+    this.conflicts = throwReducedMockupApiError
+    this.delete = throwReducedMockupApiError
+    this.getQueryPlan = throwReducedMockupApiError
+    this.item = throwReducedMockupApiError
+    this.items = throwReducedMockupApiError
+    this.read = throwReducedMockupApiError
+    this.readPartitionKeyDefinition = throwReducedMockupApiError
+    this.readPartitionKeyRanges = throwReducedMockupApiError
+    this.replace = throwReducedMockupApiError
+    this.scripts = throwReducedMockupApiError
+    this.url = throwReducedMockupApiError
+  }
+}
+
 function mockContainer({ client, database, name, throughput }) {
   assert(client != null && typeof client === 'object', 'Mockup: Invalid client')
   assert(database != null && typeof database === 'object', 'Mockup: Invalid database')
@@ -42,27 +65,7 @@ function mockContainer({ client, database, name, throughput }) {
     const resourceId = uuid()
     const offer = mockOffer({ client, containerResourceId: resourceId, throughput })
 
-    const newContainer = {
-      database,
-      id: name,
-
-      _rid: resourceId,
-
-      __mock: { client, throughput, offer, resourceId },
-
-      conflict: throwReducedMockupApiError,
-      conflicts: throwReducedMockupApiError,
-      delete: throwReducedMockupApiError,
-      getQueryPlan: throwReducedMockupApiError,
-      item: throwReducedMockupApiError,
-      items: throwReducedMockupApiError,
-      read: throwReducedMockupApiError,
-      readPartitionKeyDefinition: throwReducedMockupApiError,
-      readPartitionKeyRanges: throwReducedMockupApiError,
-      replace: throwReducedMockupApiError,
-      scripts: throwReducedMockupApiError,
-      url: throwReducedMockupApiError
-    }
+    const newContainer = new Container({ database, name, client, throughput, offer, resourceId })
 
     Global.containersPerClientAndDatabase[clientId][databaseId][name] = newContainer
   }
@@ -94,22 +97,46 @@ function findMockedContainer({ client, database, name }) {
   return container
 }
 
+class Containers {
+  constructor({ client, database }) {
+    const clientId = client.__mock.id
+    const databaseId = database.id
+
+    this.database = database
+
+    this.createIfNotExists = options => {
+      const { id, throughput } = options
+      const container = mockContainer({ client, database, name: id, throughput })
+      return Promise.resolve({ resource: container, container })
+    }
+
+    this.readAll = () => {
+      const listOfAllContainers = Object.values(
+        Global.containersPerClientAndDatabase[clientId][databaseId]
+      )
+      const listOfAllContainerDefinitions = listOfAllContainers.map(
+        getContainerDefinitionAndResource
+      )
+      const _feedResponse = { resources: listOfAllContainerDefinitions }
+      const _queryIterator = { fetchAll: () => Promise.resolve(_feedResponse) }
+      return _queryIterator
+    }
+
+    this.create = throwReducedMockupApiError
+    this.query = throwReducedMockupApiError
+  }
+}
+
 function mockContainers({ client, database }) {
   assert(client != null && typeof client === 'object')
   assert(database != null && typeof database === 'object')
 
-  const createIfNotExists = options => {
-    const { id, throughput } = options
-    const container = mockContainer({ client, database, name: id, throughput })
-    return Promise.resolve({ resource: container, container })
+  return new Containers({ client, database })
+}
+
+function getContainerDefinitionAndResource(container) {
+  return {
+    id: container.id,
+    _rid: container.__mock.resourceId
   }
-
-  const containers = {
-    client,
-    database,
-
-    createIfNotExists
-  }
-
-  return containers
 }

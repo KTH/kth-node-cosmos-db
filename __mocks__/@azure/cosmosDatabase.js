@@ -1,3 +1,4 @@
+/* eslint-disable max-classes-per-file */
 /* eslint no-use-before-define: ["error", "nofunc"] */
 
 /**
@@ -22,6 +23,18 @@ module.exports = {
 
 const Global = { databasesPerClient: {} }
 
+class Database {
+  constructor({ client, name, resourceId }) {
+    this.client = client
+    this.id = name
+    this.__mock = { name, resourceId }
+
+    this.containers = mockContainers({ client, database: this })
+    this.container = containerName =>
+      findMockedContainer({ client, database: this, name: containerName })
+  }
+}
+
 function mockDatabase({ client, name }) {
   assert(client != null && typeof client === 'object', 'Mockup: Invalid client')
   assert(typeof name === 'string' && name !== '', 'Mockup: Invalid database name')
@@ -33,19 +46,7 @@ function mockDatabase({ client, name }) {
   }
 
   if (Global.databasesPerClient[clientId][name] == null) {
-    const resourceId = uuid()
-
-    const newDatabase = {
-      client,
-      id: name,
-
-      __mock: { name, resourceId }
-    }
-
-    newDatabase.containers = mockContainers({ client, database: newDatabase })
-    newDatabase.container = containerName =>
-      findMockedContainer({ client, database: newDatabase, name: containerName })
-
+    const newDatabase = new Database({ client, name, resourceId: uuid() })
     Global.databasesPerClient[clientId][name] = newDatabase
   }
 
@@ -71,32 +72,32 @@ function findMockedDatabase({ client, name }) {
   return database
 }
 
+class Databases {
+  constructor({ client }) {
+    this.client = client
+
+    const clientId = client.__mock.id
+
+    this.createIfNotExists = options => {
+      const { id } = options
+      const database = mockDatabase({ client, name: id })
+      return Promise.resolve({ resource: database, database })
+    }
+
+    this.readAll = () => {
+      const listOfAllDatabases = Object.values(Global.databasesPerClient[clientId])
+      const _feedResponse = { resources: listOfAllDatabases }
+      const _queryIterator = { fetchAll: () => Promise.resolve(_feedResponse) }
+      return _queryIterator
+    }
+
+    this.create = throwReducedMockupApiError
+    this.query = throwReducedMockupApiError
+  }
+}
+
 function mockDatabases({ client }) {
   assert(client != null && typeof client === 'object')
 
-  const clientId = client.__mock.id
-
-  const createIfNotExists = options => {
-    const { id } = options
-    const database = mockDatabase({ client, name: id })
-    return Promise.resolve({ resource: database, database })
-  }
-
-  const readAll = () => {
-    const listOfAllDatabases = Object.values(Global.databasesPerClient[clientId])
-    const _feedResponse = { resources: listOfAllDatabases }
-    const _queryIterator = { fetchAll: () => Promise.resolve(_feedResponse) }
-    return _queryIterator
-  }
-
-  const databases = {
-    client,
-    createIfNotExists,
-    readAll,
-
-    create: throwReducedMockupApiError,
-    query: throwReducedMockupApiError
-  }
-
-  return databases
+  return new Databases({ client })
 }
