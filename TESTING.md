@@ -1,12 +1,12 @@
 # Unit tests in `kth-node-cosmos-db`
 
-## Running tests against real CosmosDB?
+## Running tests against real CosmosDB?!
 
 The project contains a mockup of package "@azure/cosmosdb" as an easy way to unit test the functionality which is based on Azure connections.
 
 The mockup can be found in the directory "\_\_mocks\_\_/azure". Please be aware that it might be erroneous or missing some important functions.
 
-Especially after changing the mockup, e.g. because of added unit tests, you should run the tests with a real Azure CosmosDB connection.
+Especially after changing the mockup, e.g. because of added unit tests, you should also run the tests with a real Azure CosmosDB connection.
 
 ### Configuration
 
