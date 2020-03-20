@@ -16,10 +16,19 @@ module.exports = {
 
 function _listAllCalls() {
   const allCalls = {}
-  Object.keys(mocks).forEach(key => {
-    allCalls[key] = mocks[key].calls
+  let foundCall = false
+
+  const mockedFunctions = Object.keys(mocks)
+
+  mockedFunctions.forEach(name => {
+    const { calls } = mocks[name].mock
+    if (calls.length > 0) {
+      foundCall = true
+      allCalls[name] = calls
+    }
   })
-  return allCalls
+
+  return foundCall ? allCalls : null
 }
 
 function _clearAllCalls() {
