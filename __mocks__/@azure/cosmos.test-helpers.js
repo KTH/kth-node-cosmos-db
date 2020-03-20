@@ -23,7 +23,9 @@ function getConfiguredTestCosmosClient() {
     })
 
     // eslint-disable-next-line no-console
-    console.log('Azure CosmosDB: Using connection from environment variable for unit tests')
+    console.log(
+      'Azure CosmosDB: Using real connection for unit tests (configured with environment variable)'
+    )
 
     return new RealAzure.CosmosClient({ endpoint, key, agent })
   }
