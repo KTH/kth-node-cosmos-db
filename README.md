@@ -86,7 +86,7 @@ const client = createClient({
   logger: console
 })
 
-client.init()
+await client.init()
 ```
 
 The collections option is an array of objects.
