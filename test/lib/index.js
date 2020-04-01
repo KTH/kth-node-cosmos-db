@@ -3,17 +3,19 @@
 // @ts-check
 
 const collectAllInternalMethods = require('./collectAllInternalMethods')
+const CosmosDb = require('./CosmosDb')
 const Environment = require('./Environment')
-const Mongoose = require('./Mongoose')
 const getObjectKeysWithDifferentValues = require('./getObjectKeysWithDifferentValues')
+const Mongoose = require('./Mongoose')
 const removeCodeCoveragePollution = require('./removeCodeCoveragePollution')
 const testBasicFunctionExport = require('./testBasicFunctionExport')
 
 module.exports = {
   collectAllInternalMethods,
+  CosmosDb,
   Environment,
-  Mongoose,
   getObjectKeysWithDifferentValues,
+  Mongoose,
   removeCodeCoveragePollution,
   testBasicFunctionExport
 }

@@ -7,10 +7,14 @@
     "lib": "lib"
   },
   "scripts": {
-    "test": "NODE_ENV=development jest",
-    "test:watch": "NODE_ENV=development jest --watch",
-    "test:watch:notify": "NODE_ENV=development jest --watch --notify",
-    "test:coverage": "NODE_ENV=development JEST_MODE=coverage jest --collectCoverage --detectOpenHandles",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:notify": "jest --watch --notify",
+    "test:coverage": "JEST_MODE=coverage jest --collectCoverage --detectOpenHandles",
+    "test:integration": "jest --testMatch \"<rootDir>/test/**/*.integration-test.js\"",
+    "test:integration:watch": "jest --testMatch \"<rootDir>/test/**/*.integration-test.js\" --watch",
+    "test:integration:notify": "jest --testMatch \"<rootDir>/test/**/*.integration-test.js\" --watch --notify",
+    "dependency-graph": "madge --image dependencies.svg lib/index.js",
     "postversion": "git push && git push --tags",
     "build": "./build.sh"
   },
@@ -51,12 +55,12 @@
     "mongodb": "^3.5.5",
     "mongodb-core": "^3.2.7",
     "mongodb-memory-server": "^6.3.3",
-    "mongoose": "^5.9.5",
     "prettier": "^1.19.1",
     "uuid": "^7.0.2"
   },
   "dependencies": {
     "@azure/cosmos": "^3.6.2",
-    "kth-node-log": "^3.0.2"
+    "kth-node-log": "^3.0.2",
+    "mongoose": "5.7.1"
   }
 }

@@ -67,70 +67,61 @@ Set the environment variable `USE_COSMOS_DB=true`, e.g. in the .env file, if you
 
 ## Usage
 
-### `createClient()`
+### `createClient()` - Prepare database and collections
 
-Use `createClient()` on application startup, e.g. in file "server.js":
+Use `createClient()` and `await client.init()` on application startup, e.g. in file "server.js":
 
 ```js
+// Example
 const { createClient } = require('@kth/kth-node-cosmos-db')
 const models = require('./models')
 
-const client = createClient({
-  username: config.db.username,
-  password: config.db.password,
+const cosmosDbOptions = {
   host: config.db.host,
   db: config.db.db,
+  username: config.db.username,
+  password: config.db.password,
   defaultThroughput: 400,
   maxThroughput: 2000,
   collections: [{ name: 'users', throughput: 800 }, { name: 'emails' }],
   logger: console
-})
+}
 
+const client = createClient(cosmosDbOptions)
 await client.init()
 ```
 
-The collections option is an array of objects.
-Each object must have the name attribute while the throughput attribute is optional.
-The throughput attribute makes it possible to have different default throughputs for each collections.
-If no throughput attribute is added it will default to the defaultThroughput option.
+The option "collections" is an array of objects. Each object must have the "name" attribute while the "throughput" attribute is optional.
 
-### Get Client
+The throughput attribute makes it possible to have different default throughputs for each collections. If no throughput attribute is added it will default to the defaultThroughput option.
 
-If one need to get the client instance to call a specific client function one will get it like this.
+### `wrap()` - Wrap mongoose model
 
-```javascript
-const { getClient } = require('kth-node-cosmos-db')
+When defining a Mongoose model don't forget to wrap the model before using it. This allows "kth-node-cosmos-db" to automatically handle "Too many requests" errors from CosmosDB and retry your Mongoose action after increasing the throughput value.
 
-const client = getClient()
-```
-
-### Wrap mongoose model
-
-When defining a mongoose model don't forget to wrap the model before exporting it.
-
-This allows the db to use retry functionality when Error 'Too many requests'.
+`wrap()` changes the given model in place. The wrapped model can then be used like any other Mongoose model.
 
 ```javascript
+// Example
 const mongoose = require('mongoose')
 const { wrap } = require('kth-node-cosmos-db')
 
-const schema = mongoose.Schema({
-  name: String,
-  value: Number
-})
+const personSchema = mongoose.Schema({ name: String, age: Number })
+const Person = mongoose.model('Person', personSchema)
 
-const Model = mongoose.model('Model', schema)
-
-module.exports = {
-  Model: wrap(Model),
-  schema: schema
-}
+wrap(Person)
 ```
 
-## Todo
+**Please note:** `wrap()` internally uses the CosmosDB client to update throughput values if needed. Please ensure to initialize the module with `createClient()` and `await client.init()` before using the Model.
 
-- Support more mongoose querys in the wrap function.
+### `getClient()`
 
-## Done
+If you want to manually update throughput values, you can use `getClient()` to access the module's CosmosDB client.
 
-- Currently supporting find, findOne, findOneAndUpdate, update and save querys
+```javascript
+// Example
+const { getClient } = require('kth-node-cosmos-db')
+
+const client = getClient()
+await client.resetThroughput()
+```

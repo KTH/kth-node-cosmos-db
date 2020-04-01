@@ -3,6 +3,13 @@
 // @ts-check
 
 /**
+ * Please note: This mockup of an external module
+ * will be automatically activated by jest
+ * if this file is situated in "<root>/__mocks__"
+ * and you don't explicitly call jest.unmock()
+ */
+
+/**
  * Structural information about CosmosClient was taken from "API report" at
  * https://github.com/Azure/azure-sdk-for-js/blob/master/sdk/cosmosdb/cosmos/review/cosmos.api.md
  * as well as
@@ -14,9 +21,9 @@
 const { v1: uuid } = require('uuid')
 const assert = require('assert')
 
-const { mockDatabases, findMockedDatabase } = require('./cosmosDatabase')
-const { mockOffers, findMockedOffer } = require('./cosmosOffer')
-const { throwReducedMockupApiError } = require('./cosmosError')
+const { mockDatabases, findMockedDatabase } = require('./Database')
+const { mockOffers, findMockedOffer } = require('./Offer')
+const { throwReducedMockupApiError } = require('./Error')
 
 module.exports = {
   CosmosClient: getMockupCosmosClient()

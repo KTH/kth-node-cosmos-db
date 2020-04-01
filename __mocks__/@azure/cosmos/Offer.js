@@ -11,7 +11,7 @@
 const { v1: uuid } = require('uuid')
 const assert = require('assert')
 
-const { throwReducedMockupApiError } = require('./cosmosError')
+const { throwReducedMockupApiError } = require('./Error')
 
 module.exports = {
   mockOffer,
@@ -47,6 +47,7 @@ function mockOffer({ client, containerResourceId, throughput }) {
         'Mockup: Invalid throughput in offer definition'
       )
       Global.offersPerClient[clientId][containerResourceId].content = { ...content }
+      return { statusCode: 200 }
     }
 
     const newOffer = {

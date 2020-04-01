@@ -1,0 +1,73 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Mongoose model wrapper function adaptMongooseModel() - when looking at the code of single methods in production mode - overloads find() matching snapshot 1`] = `
+"async function wrapper(...methodArgs) {
+  const model = this;
+  let mongooseError = new Error(
+    \`kth-node-cosmos-db: Internal error - Failed to call Mongoose method \\"\${methodName}\\"\`
+  );
+  let errorHandlerResult = {};
+  const timeoutsPerAttempt = MongooseUtils.getRetryStrategy();
+  for (let attempt = 0, timeout = 0; attempt < 50; attempt++) {
+    const newTimeout = timeoutsPerAttempt[attempt];
+    if (
+      newTimeout == null ||
+      newTimeout === MongooseUtils.CONTINUE_WITH_LAST_TIMEOUT
+    ) {
+      const runMethodWithPreviousTimeout =
+        attempt === 0 ||
+        (timeoutsPerAttempt.length > 0 &&
+          timeoutsPerAttempt[timeoutsPerAttempt.length - 1] ===
+            MongooseUtils.CONTINUE_WITH_LAST_TIMEOUT);
+      if (!runMethodWithPreviousTimeout) {
+        break;
+      }
+    } else {
+      timeout = newTimeout;
+    }
+    mongooseError = null;
+    try {
+      const methodData = {
+        model,
+        methodName,
+        methodArgs,
+        supportBatchsize,
+        client,
+        timeout
+      };
+      const result = await _callMongooseMethodAsync(methodData);
+      return result;
+    } catch (error) {
+      mongooseError = error;
+    }
+    errorHandlerResult = {};
+    try {
+      const errorHandlerData = {
+        model,
+        error: mongooseError,
+        client
+      };
+      errorHandlerResult = await _tryToHandleThroughputError(errorHandlerData);
+    } catch (internalError) {
+      log.error(
+        \\"kth-node-cosmos-db: Increasing throughput during Mongoose operation failed\\",
+        {
+          mongooseError,
+          internalError
+        }
+      );
+      throw internalError;
+    }
+    if (!errorHandlerResult.isThroughputError) {
+      throw mongooseError;
+    }
+    if (errorHandlerResult.throughputMaximal) {
+      break;
+    }
+  }
+  throw new Error(
+    \`kth-node-cosmos-db: Failed during Mongoose method \\"\${methodName}\\" - Maybe there is generally too little throughput available\`
+  );
+}
+"
+`;

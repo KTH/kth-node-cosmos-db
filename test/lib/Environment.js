@@ -2,8 +2,6 @@
 
 // @ts-check
 
-const assert = require('assert')
-
 const MODE_DEVELOPMENT = 'development'
 const MODE_PRODUCTION = 'production'
 
@@ -19,6 +17,8 @@ module.exports = {
   MODE_DEVELOPMENT,
   MODE_PRODUCTION
 }
+
+const assert = require('assert')
 
 const Global = {
   saveCounter: 0

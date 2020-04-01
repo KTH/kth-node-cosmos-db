@@ -3,17 +3,12 @@
 
 // @ts-check
 
+module.exports = { start, stop, getTestModel, getTestObjectId }
+
 const assert = require('assert')
 
 const mongoose = require('mongoose')
 const { MongoMemoryServer } = require('mongodb-memory-server')
-
-module.exports = {
-  start,
-  stop,
-  getTestModel,
-  getTestObjectId
-}
 
 const Global = {
   server: null,

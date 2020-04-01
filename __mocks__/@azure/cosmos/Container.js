@@ -12,8 +12,8 @@
 const { v1: uuid } = require('uuid')
 const assert = require('assert')
 
-const { mockOffer } = require('./cosmosOffer')
-const { throwReducedMockupApiError } = require('./cosmosError')
+const { mockOffer } = require('./Offer')
+const { throwReducedMockupApiError } = require('./Error')
 
 module.exports = {
   mockContainer,
@@ -111,9 +111,10 @@ class Containers {
     }
 
     this.readAll = () => {
-      const listOfAllContainers = Object.values(
-        Global.containersPerClientAndDatabase[clientId][databaseId]
-      )
+      const listOfAllContainers =
+        Global.containersPerClientAndDatabase[clientId] == null
+          ? []
+          : Object.values(Global.containersPerClientAndDatabase[clientId][databaseId] || {})
       const listOfAllContainerDefinitions = listOfAllContainers.map(
         getContainerDefinitionAndResource
       )

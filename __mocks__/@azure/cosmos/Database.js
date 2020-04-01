@@ -12,8 +12,8 @@
 const { v1: uuid } = require('uuid')
 const assert = require('assert')
 
-const { mockContainers, findMockedContainer } = require('./cosmosContainer')
-const { throwReducedMockupApiError } = require('./cosmosError')
+const { mockContainers, findMockedContainer } = require('./Container')
+const { throwReducedMockupApiError } = require('./Error')
 
 module.exports = {
   mockDatabase,
@@ -21,7 +21,9 @@ module.exports = {
   mockDatabases
 }
 
-const Global = { databasesPerClient: {} }
+const Global = {
+  databasesPerClient: {}
+}
 
 class Database {
   constructor({ client, name, resourceId }) {
@@ -85,7 +87,7 @@ class Databases {
     }
 
     this.readAll = () => {
-      const listOfAllDatabases = Object.values(Global.databasesPerClient[clientId])
+      const listOfAllDatabases = Object.values(Global.databasesPerClient[clientId] || {})
       const _feedResponse = { resources: listOfAllDatabases }
       const _queryIterator = { fetchAll: () => Promise.resolve(_feedResponse) }
       return _queryIterator
