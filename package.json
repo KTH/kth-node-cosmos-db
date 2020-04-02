@@ -8,13 +8,14 @@
   },
   "scripts": {
     "test": "jest",
+    "test:mockup": "UNIT_TEST_COSMOSDB_CONNECTION=false jest",
     "test:watch": "jest --watch",
     "test:notify": "jest --watch --notify",
-    "test:coverage": "JEST_MODE=coverage jest --collectCoverage --detectOpenHandles",
+    "test:coverage": "UNIT_TEST_COSMOSDB_CONNECTION=false JEST_MODE=coverage jest --collectCoverage --detectOpenHandles",
     "test:integration": "jest --testMatch \"<rootDir>/test/**/*.integration-test.js\"",
     "test:integration:watch": "jest --testMatch \"<rootDir>/test/**/*.integration-test.js\" --watch",
     "test:integration:notify": "jest --testMatch \"<rootDir>/test/**/*.integration-test.js\" --watch --notify",
-    "dependency-graph": "madge --image dependencies.svg lib/index.js",
+    "dependency-graph:update": "madge --image dependencies-full.svg . && madge --image dependencies-lib.svg lib/index.js",
     "postversion": "git push && git push --tags",
     "build": "./build.sh"
   },

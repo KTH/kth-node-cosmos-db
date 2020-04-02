@@ -180,7 +180,7 @@ async function _prepareTestDatabase({
     password: key,
     maxThroughput,
     disableSslRejection: true,
-    createCollectionWithMongoose: true
+    createCollectionsWithMongoose: true
   }
 
   if (defaultThroughput != null) {
