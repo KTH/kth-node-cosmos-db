@@ -10,7 +10,8 @@ exports[`Mongoose model wrapper function adaptMongooseModel() - when looking at 
   const strategyName = client.getOption(\\"retryStrategy\\");
   const strategy = StrategyUtils.getRetryStrategy(strategyName); // @ts-ignore
   const { timeoutPerAttempt, maxAttempts } = strategy;
-  for (let attempt = 0, timeout = 0; attempt < maxAttempts; attempt++) {
+  const _maxAttempts = maxAttempts > 0 ? maxAttempts : 20;
+  for (let attempt = 0, timeout = 0; attempt < _maxAttempts; attempt++) {
     const newTimeout = timeoutPerAttempt[attempt];
     if (
       newTimeout == null ||
