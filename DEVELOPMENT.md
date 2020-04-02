@@ -5,7 +5,7 @@
 - [Ideas for improvement](#ideas-for-improvement)
 - [Dependency graphs](#dependency-graphs)
 - [Unit tests](#unit-tests)
-  - [Mockup "@azure/cosmos"](#mockup-azure-cosmos-)
+  - [Mockup "@azure/cosmos"](#mockup-azurecosmos)
   - [Running agains real Cosmos DB database](#running-against-real-cosmos-db-database)
   - [UNIT_TEST_COSMOSDB_CONNECTION](#UNIT_TEST_COSMOSDB_CONNECTION)
   - [UNIT_TEST_COSMOSDB_DATABASE](#UNIT_TEST_COSMOSDB_DATABASE)
@@ -16,7 +16,7 @@
 
 ## Ideas for improvement
 
-Let's hope that the package does its job well. There might be some improvement worth implementing in future releases:
+Let's hope that the package already does a good job. There might be some improvements worth implementing in near future:
 
 - Enable throughput management on database level!
 
@@ -44,9 +44,9 @@ The package comes with a lot of unit tests.
 - **mockups:**
   The "\_\_mocks\_\_" directories contain mockup version of some source files (e.g. "utils/cosmosDb.js") and packages (e.g. "@azure/cosmos"). Those mockups will be used during some of the unit tests.
 
-### Mockup "@azure/cosmosdb"
+### Mockup "@azure/cosmos"
 
-The project contains a more advanced mockup of package "@azure/cosmosdb". This way is should be easy to test the functionality which is based on Azure services without needing a Cosmos DB test connection.
+The project contains a more advanced mockup of package "@azure/cosmos". This way is should be easy to test the functionality which is based on Azure services without needing a Cosmos DB test connection.
 
 The mockup can be found in the directory "\_\_mocks\_\_/@azure/cosmos".
 

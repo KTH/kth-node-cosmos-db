@@ -1,6 +1,6 @@
 {
   "name": "@kth/kth-node-cosmos-db",
-  "version": "4.0.3",
+  "version": "4.0.4",
   "description": "Node.js module for projects using Azure Cosmos Db.",
   "main": "lib/index.js",
   "directories": {
@@ -31,8 +31,11 @@
   "keywords": [
     "kth",
     "node",
+    "mongoose",
     "azure",
-    "cosmosdb"
+    "cosmosdb",
+    "throughput",
+    "request unit"
   ],
   "license": "MIT",
   "bugs": {
@@ -40,28 +43,28 @@
   },
   "homepage": "https://github.com/KTH/kth-node-cosmos-db#readme",
   "devDependencies": {
-    "@types/jest": "^25.1.4",
+    "@types/jest": "^25.1.5",
     "babel-eslint": "^10.1.0",
     "dotenv": "^8.2.0",
     "eslint": "^6.8.0",
     "eslint-config-airbnb": "^18.1.0",
-    "eslint-config-prettier": "^6.10.0",
-    "eslint-plugin-import": "^2.20.1",
+    "eslint-config-prettier": "^6.10.1",
+    "eslint-plugin-import": "^2.20.2",
     "eslint-plugin-jest": "^23.8.2",
     "eslint-plugin-jsx-a11y": "^6.2.3",
     "eslint-plugin-prettier": "^3.1.2",
     "eslint-plugin-react": "^7.18.3",
-    "jest": "^25.1.0",
+    "jest": "^25.2.6",
     "jest-extended": "^0.11.5",
     "mongodb": "^3.5.5",
     "mongodb-core": "^3.2.7",
-    "mongodb-memory-server": "^6.3.3",
+    "mongodb-memory-server": "^6.5.1",
     "prettier": "^1.19.1",
-    "uuid": "^7.0.2"
+    "uuid": "^7.0.3"
   },
   "dependencies": {
     "@azure/cosmos": "^3.6.2",
     "kth-node-log": "^3.0.2",
-    "mongoose": "5.7.1"
+    "mongoose": "^5.9.7"
   }
 }

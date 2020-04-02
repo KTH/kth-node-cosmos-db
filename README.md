@@ -1,40 +1,20 @@
 # kth-node-cosmos-db ![Build](https://travis-ci.org/KTH/kth-node-cosmos-db.svg?branch=master 'Build')
 
 Our Node.js applications at KTH in Stockholm use Mongoose to access CosmosDB in Azure.
-This module is a wrapper around "@azure/cosmosdb" designed for those applications.
+This module is a wrapper around "@azure/cosmos" designed for those applications.
 
 ### Contents
 
+- [Upgrading from version 3](#upgrading-from-version-3)
 - [Intended use](#intended-use)
 - [Remarks on local development](#remarks-on-local-development)
-- [Upgrading from old version](#upgrading-from-old-version)
 - [How It Works](#how-it-works)
 - [Usage](#usage)
 - [Client options](#client-options)
 - [Client methods](#client-methods)
-- [Ideas for improvement](#ideas-for-improvement)
+- [Further reading](#further-reading)
 
-## Intended use
-
-Using this module instead of directly including "@azure/cosmosdb" into a project has the following benefits:
-
-- Any Mongoose action will automatically manage Azure's provision throughput, too.
-
-  _Especially when a "Too many requests" error occurs during a database action, the wrapper will increase the throughput of the related collection with a fixed amount and then retry the action. The "Too many requests" error will mainly occur when importing foreign data, e.g. into an API project. When an import is done, the application should reset all collections throughput to their default value using `client.resetThroughput()`._
-
-- The module can also set a batchSize to avoid Cursor Timeout errors during find-operations.
-
-## Remarks on local development
-
-By default, the wrapper won't be active during local development, e.g. when using a local database. Your application will still work but it will only produce logging outputs like "Not available in native MongoDB" when it comes to the functions of this module.
-
-If you wish to use the full wrapper functionality also locally, set the environment variable `USE_COSMOS_DB`, e.g. in the .env file:
-
-```sh
-USE_COSMOS_DB=true
-```
-
-## Upgrading from old version
+## Upgrading from version 3
 
 The interface was changed with version 4 of this module. Previously there was a function `wrap()` which changed an already created Mongoose model in place. This function was replaced by `client.createMongooseModel()` which instead completely wraps `mongoose.model()`, now.
 
@@ -52,19 +32,41 @@ const User = client.createMongooseModel('users', mongooseSchema)
 - Ensure to use the Mongoose schema as second input to `client.createMongooseModel()`!
 - Ensure that your application runs `createClient()` and `await client.init()`, before!
 
+## Intended use
+
+Using this module instead of directly including "@azure/cosmos" into a project has the following benefits:
+
+- Any Mongoose action will automatically manage Azure's provision throughput, too.
+
+  _Especially when a "Too many requests" error occurs during a database action, the wrapper will increase the throughput of the related collection with a fixed amount and then retry the action. The "Too many requests" error will mainly occur when importing foreign data, e.g. into an API project. When an import is done, the application should reset all collections throughput to their default value using `client.resetThroughput()`._
+
+- The module can also set a batchSize to avoid Cursor Timeout errors during find-operations.
+
+## Remarks on local development
+
+By default, the wrapper won't be active during local development, e.g. when using a local database. Your application will still work but it will only produce logging outputs like "Not available in native MongoDB" when it comes to the functions of this module.
+
+If you wish to use the full wrapper functionality also locally, set the environment variable `USE_COSMOS_DB`, e.g. in the .env file:
+
+```sh
+USE_COSMOS_DB=true
+```
+
 ## How it works
 
-1. `createClient()` prepares the needed database and it's collections in Azure.
-
-1. `client.createMongooseModel()` has to be used instead of `mongoose.model()` to prepare any Mongoose model and add the automatic throughput management to it.
+1. `createClient()` and `await client.init()` prepare the needed database and it's collections in Cosmos DB.
 
 1. `getClient()` helps you access the module's methods, later.
+
+1. `client.createMongooseModel()` has to be used instead of `mongoose.model()` to prepare any Mongoose model and add the automatic throughput management to it.
 
 1. `await client.resetThroughput()` is especially useful after data imports to avoid the throughput value to stay high for a longer time. _You might save money this way in Azure._
 
 ## Usage
 
-### `createClient( options )` - _Prepare database and collections_
+### `createClient( options )`
+
+**Prepare database and collections**
 
 Use `createClient()` and `await client.init()` on application startup, e.g. in file "server.js":
 
@@ -98,7 +100,9 @@ The throughput attribute makes it possible to have different default throughputs
 
 You can use `getClient()` whenever you need access to the module's methods, e.g. to manually update throughput values.
 
-### `client.createMongooseModel( collectionName, mongooseSchema )` - _Prepare a Mongoose model_
+### `client.createMongooseModel( collectionName, mongooseSchema )`
+
+**Prepare a Mongoose model**
 
 When defining a Mongoose model don't use `mongoose.model()` - use `client.createMongooseModel()` instead. This allows "kth-node-cosmos-db" to automatically handle "Too many requests" errors from CosmosDB and retry your Mongoose operation after increasing the throughput value.
 
@@ -145,26 +149,26 @@ await client.resetThroughput()
 
 The following options must be given to `createClient()`:
 
-|        Option | Content                                                                |     Type      | Mutable |
-| ------------: | ---------------------------------------------------------------------- | :-----------: | :-----: |
-|          host | The hostname of the Cosmos DB server                                   |    string     |    -    |
-|      username | Auth credentials                                                       |    string     |    -    |
-|      password | Auth credentials (Azure key)                                           |    string     |    -    |
-|            db | The name of the database                                               |    string     |    -    |
-|   collections | An Array of objects containing collection name and optional throughput | (see remarks) |    -    |
-| maxThroughput | The maximum amount of RU/s a collection is allowed to reach            |    number     |   yes   |
+|        Option | Content                                                             |     Type      | Mutable |
+| ------------: | ------------------------------------------------------------------- | :-----------: | :-----: |
+|          host | The hostname of the Cosmos DB server                                |    string     |    -    |
+|      username | Auth credentials                                                    |    string     |    -    |
+|      password | Auth credentials (Azure key)                                        |    string     |    -    |
+|            db | The name of the database                                            |    string     |    -    |
+|   collections | An Array of objects with information<br/>about the used collections | (see remarks) |    -    |
+| maxThroughput | The maximum amount of RU/s<br/>a collection is allowed to reach     |    number     |   yes   |
 
 ### Optional
 
-|                        Option | Content                                                                                       |  Type   | Default  | Mutable |
-| ----------------------------: | --------------------------------------------------------------------------------------------- | :-----: | :------: | :-----: |
-|             defaultThroughput | The default throughput in RU/s which each collection will be created with.                    | number  |  `400`   |   yes   |
-|            throughputStepsize | The increase in RU/s when a write fails                                                       | number  |  `200`   |   yes   |
-|                     batchSize | Batch size of find()-querys                                                                   | number  | `10000`  |   yes   |
-|                          port | The SSL port used by the Cosmos DB server                                                     | number  |    -     |    -    |
-|           disableSslRejection | Allow self signed certificates when accessing Cosmos DB server                                | boolean | `false`  |    -    |
-| createCollectionsWithMongoose | Don't create unexisting container during init()                                               | boolean | `false`  |    -    |
-|                 retryStrategy | Name of predefined set of retry-timeouts which is used when responding to throughput problems | string  | `"good"` |   yes   |
+|                        Option | Content                                                                                          |  Type   | Default  | Mutable |
+| ----------------------------: | ------------------------------------------------------------------------------------------------ | :-----: | :------: | :-----: |
+|             defaultThroughput | The default throughput in RU/s<br/>which each collection will be<br/>created with.               | number  |  `400`   |   yes   |
+|            throughputStepsize | The increase in RU/s<br/>when a write fails                                                      | number  |  `200`   |   yes   |
+|                     batchSize | Batch size of find()-querys                                                                      | number  | `10000`  |   yes   |
+|                          port | The SSL port used<br/>by the Cosmos DB server                                                    | number  |    -     |    -    |
+|           disableSslRejection | Allow self signed certificates<br/>when accessing Cosmos DB server                               | boolean | `false`  |    -    |
+| createCollectionsWithMongoose | Don't create unexisting<br/>containers during init()                                             | boolean | `false`  |    -    |
+|                 retryStrategy | Name of predefined set<br/>of retry-timeouts which is used<br/>when handling throughput problems | string  | `"good"` |   yes   |
 
 ### Remarks
 
@@ -202,36 +206,40 @@ The following options must be given to `createClient()`:
 
 ### Descriptions
 
-| Name                             | Description                                                                        |
-| -------------------------------- | :--------------------------------------------------------------------------------- |
-| `init`                           | Prepare database and containers in Cosmos DB                                       |
-| `createMongooseModel`            | Prepare one Mongoose model that will automatically increase throughput values, too |
-| `getOption`                      | Get the value of any option                                                        |
-| `setOption`                      | Change the value of a mutable option                                               |
-| `getCollectionThroughput`        | Get throughput of specific collection                                              |
-| `listCollectionsWithThroughput`  | List the name and throughput of each collection                                    |
-| `increaseCollectionThroughput`   | Increase the specific collections throughput with the value of defaultThroughput   |
-| `updateCollectionThroughput`     | Update specific collection throughput to a value of choice                         |
-| `updateAllCollectionsThroughput` | Update all collections throughput to a value of choice                             |
-| `resetThroughput`                | Reset throughput to default for each collection                                    |
+|                             Name | Description                                                                        |
+| -------------------------------: | :--------------------------------------------------------------------------------- |
+|                           init() | Prepare database and containers in Cosmos DB                                       |
+|            createMongooseModel() | Prepare one Mongoose model that will automatically increase throughput values, too |
+|                      getOption() | Get the value of any option                                                        |
+|                      setOption() | Change the value of a mutable option                                               |
+|        getCollectionThroughput() | Get throughput of specific collection                                              |
+|  listCollectionsWithThroughput() | List the name and throughput of each collection                                    |
+|   increaseCollectionThroughput() | Increase the specific collections throughput with the value of defaultThroughput   |
+|     updateCollectionThroughput() | Update specific collection throughput to a value of choice                         |
+| updateAllCollectionsThroughput() | Update all collections throughput to a value of choice                             |
+|                resetThroughput() | Reset throughput to default for each collection                                    |
 
 ### Interface
 
-| Async |                           Method | Arguments                          |         Return value         |
-| :---: | -------------------------------: | :--------------------------------- | :--------------------------: |
-| await |                           `init` | `()`                               |       client _(this)_        |
-|   -   |            `createMongooseModel` | `(collectionName, mongooseSchema)` |          new model           |
-|   -   |                      `getOption` | `(key)`                            |       value of option        |
-|   -   |                      `setOption` | `(key, value)`                     |       client _(this)_        |
-| await |        `getCollectionThroughput` | `(collectionName)`                 |    throughput _(number)_     |
-| await |  `listCollectionsWithThroughput` | `()`                               |      list _(object[])_       |
-| await |   `increaseCollectionThroughput` | `(collectionName)`                 |     increase _(number)_      |
-| await |     `updateCollectionThroughput` | `(collectionName, throughput)`     |  new throughput _(number)_   |
-| await | `updateAllCollectionsThroughput` | `(throughput)`                     | new throughputs _(number[])_ |
-| await |                `resetThroughput` | `()`                               | new throughputs _(number[])_ |
+| Async |                         Method | Arguments                        |           Return value           |
+| :---: | -----------------------------: | :------------------------------- | :------------------------------: |
+| await |                           init | ( )                              |       client<br/>_(this)_        |
+|   -   |            createMongooseModel | (collectionName, mongooseSchema) |            new model             |
+|   -   |                      getOption | (key)                            |         value of option          |
+|   -   |                      setOption | (key, value)                     |       client<br/>_(this)_        |
+| await |        getCollectionThroughput | (collectionName)                 |    throughput<br/>_(number)_     |
+| await |  listCollectionsWithThroughput | ( )                              |      list<br/>_(object[])_       |
+| await |   increaseCollectionThroughput | (collectionName)                 |     increase<br/>_(number)_      |
+| await |     updateCollectionThroughput | (collectionName, throughput)     |  new throughput<br/>_(number)_   |
+| await | updateAllCollectionsThroughput | (throughput)                     | new throughputs<br/>_(number[])_ |
+| await |                resetThroughput | ( )                              | new throughputs<br/>_(number[])_ |
 
 ### Remarks
 
 - `client.init()` and `client.createMongooseModel()` are important steps during the setup of your application...
 
-- Call `client.resetThroughput()` regularly, especially after a data import is done. This avoid too high throughput values and helps you save costs in Azure.
+- Call `client.resetThroughput()` regularly, especially after a data import is done. This avoids too high throughput values and helps you save costs in Azure.
+
+## Further reading
+
+- [DEVELOPMENT.md](https://github.com/KTH/kth-node-cosmos-db/blob/master/DEVELOPMENT.md) contains information about testing and changing the module
