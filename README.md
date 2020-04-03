@@ -1,7 +1,6 @@
 # kth-node-cosmos-db ![Build](https://travis-ci.org/KTH/kth-node-cosmos-db.svg?branch=master 'Build')
 
-Our Node.js applications at KTH in Stockholm use Mongoose to access CosmosDB in Azure.
-This module is a wrapper around "@azure/cosmos" designed for those applications.
+Our Node.js applications at KTH in Stockholm use Mongoose to access CosmosDB in Azure. This module is a wrapper around "@azure/cosmos" designed for those applications.
 
 ### Contents
 
