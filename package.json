@@ -1,6 +1,6 @@
 {
   "name": "@kth/kth-node-cosmos-db",
-  "version": "4.0.4",
+  "version": "4.0.5",
   "description": "Node.js module for projects using Azure Cosmos Db.",
   "main": "lib/index.js",
   "directories": {
@@ -12,6 +12,7 @@
     "test:watch": "jest --watch",
     "test:notify": "jest --watch --notify",
     "test:coverage": "UNIT_TEST_COSMOSDB_CONNECTION=false JEST_MODE=coverage jest --collectCoverage --detectOpenHandles",
+    "test:coverage:all": "UNIT_TEST_COSMOSDB_CONNECTION=false JEST_MODE=coverage jest --collectCoverage --detectOpenHandles --testMatch \"**/*.?(integration-)test.js\"",
     "test:integration": "jest --testMatch \"<rootDir>/test/**/*.integration-test.js\"",
     "test:integration:watch": "jest --testMatch \"<rootDir>/test/**/*.integration-test.js\" --watch",
     "test:integration:notify": "jest --testMatch \"<rootDir>/test/**/*.integration-test.js\" --watch --notify",
