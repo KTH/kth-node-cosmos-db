@@ -151,7 +151,7 @@ async function _getPreparedTestModelWithOneDocument(client) {
   // const testSchema = new mongoose.Schema(modelDefinition, { shardKey: { name: 1 } })
   const testSchema = new mongoose.Schema(modelDefinition)
 
-  const Model = client.createMongooseModel('updateSimulation', testSchema)
+  const Model = client.createMongooseModel('updateSimulation', testSchema, mongoose)
   // const Model = mongoose.model('updateSimulation', testSchema, 'updateSimulation')
 
   const newDocument = new Model(documentTemplate)

@@ -3,9 +3,10 @@
 // @ts-check
 
 const mocks = {
+  debug: jest.fn(),
   info: jest.fn(),
-  error: jest.fn(),
-  warn: jest.fn()
+  warn: jest.fn(),
+  error: jest.fn()
 }
 
 module.exports = {
