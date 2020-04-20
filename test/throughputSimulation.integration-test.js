@@ -69,8 +69,9 @@ function runTestsAboutHandleError() {
 
     const initialThroughput = 400
     // const collections = [
-    //   { name: 'updateSimulation', throughput: initialThroughput, partitionKey: ['/name'] }
+    //   { name: 'updatesimulations', throughput: initialThroughput, partitionKey: ['/name'] }
     // ]
+    // const collections = [{ name: 'updatesimulations', throughput: initialThroughput }]
     const collections = [{ name: 'updateSimulation', throughput: initialThroughput }]
     const maxThroughput = 6000
     const throughputStepsize = 200
@@ -149,9 +150,9 @@ async function _getPreparedTestModelWithOneDocument(client) {
   const documentTemplate = { name: 'Test, Integration', updateStep: 79, data: 'abcdefg' }
 
   // const testSchema = new mongoose.Schema(modelDefinition, { shardKey: { name: 1 } })
-  const testSchema = new mongoose.Schema(modelDefinition)
+  const testSchema = new mongoose.Schema(modelDefinition, { collection: 'updateSimulation' })
 
-  const Model = client.createMongooseModel('updateSimulation', testSchema, mongoose)
+  const Model = client.createMongooseModel('UpdateSimulation', testSchema, mongoose)
   // const Model = mongoose.model('updateSimulation', testSchema, 'updateSimulation')
 
   const newDocument = new Model(documentTemplate)

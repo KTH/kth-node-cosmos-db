@@ -19,11 +19,11 @@ The interface was changed with version 4 of this module. Previously there was a 
 
 ```js
 // Old interface (until v3):
-const User = mongoose.model('users', mongooseSchema)
+const User = mongoose.model('User', mongooseSchema)
 wrap(User)
 
 // New interface (stable since v4.0.6):
-const User = client.createMongooseModel('users', mongooseSchema, mongoose)
+const User = client.createMongooseModel('User', mongooseSchema, mongoose)
 ```
 
 If you previously exported already prepared Mongoose-models from a project-folder and used them in an early state of your application's startup, some more work might be needed to upgrade to version 4. You should now export only the schemas and ensure that the models are prepared after you initialized 'kth-node-cosmos-db'.
@@ -103,7 +103,7 @@ The throughput attribute makes it possible to have different default throughputs
 
 You can use `getClient()` whenever you need access to the module's methods, e.g. to manually update throughput values.
 
-### `client.createMongooseModel( collectionName, mongooseSchema )`
+### `client.createMongooseModel( modelName, mongooseSchema )`
 
 **Prepare a Mongoose model**
 
@@ -123,11 +123,20 @@ const mongoose = require('mongoose')
 const userSchema = mongoose.Schema({ name: String, age: Number })
 
 const client = getClient()
-const User = client.createMongooseModel('users', userSchema, mongoose)
+const User = client.createMongooseModel('User', userSchema, mongoose)
 
 ...
 
 const testUser = await User.findOne({ name: "Test" })
+```
+
+`client.createMongooseModel()` will let `mongoose.model()` determine which collection name (e.g. "users") shall be used for a given model (e.g. "User"). If you don't like this behaviour, you might want to set the option "collection" in your schema before using `client.createMongooseModel()`:
+
+```javascript
+// User-defined collection name:
+...
+const userSchema = mongoose.Schema({ name: String, age: Number }, { collection: 'UserCollection' })
+...
 ```
 
 ### `client.resetThroughput()`
@@ -224,18 +233,18 @@ The following options must be given to `createClient()`:
 
 ### Interface
 
-| Async | Method and arguments                                                       |           Return value           |
-| :---: | -------------------------------------------------------------------------- | :------------------------------: |
-| await | **init** ()                                                                |       client<br/>_(this)_        |
-|   -   | **createMongooseModel** (collectionName, mongooseSchema, mongooseInstance) |            new model             |
-|   -   | **getOption** (key)                                                        |         value of option          |
-|   -   | **setOption** (key, value)                                                 |       client<br/>_(this)_        |
-| await | **getCollectionThroughput** (collectionName)                               |    throughput<br/>_(number)_     |
-| await | **listCollectionsWithThroughput** ( )                                      |      list<br/>_(object[])_       |
-| await | **increaseCollectionThroughput** (collectionName)                          |     increase<br/>_(number)_      |
-| await | **updateCollectionThroughput** (collectionName, throughput)                |  new throughput<br/>_(number)_   |
-| await | **updateAllCollectionsThroughput** (throughput)                            | new throughputs<br/>_(number[])_ |
-| await | **resetThroughput** ()                                                     | new throughputs<br/>_(number[])_ |
+| Async | Method and arguments                                                  |           Return value           |
+| :---: | --------------------------------------------------------------------- | :------------------------------: |
+| await | **init** ()                                                           |       client<br/>_(this)_        |
+|   -   | **createMongooseModel** (modelName, mongooseSchema, mongooseInstance) |            new model             |
+|   -   | **getOption** (key)                                                   |         value of option          |
+|   -   | **setOption** (key, value)                                            |       client<br/>_(this)_        |
+| await | **getCollectionThroughput** (collectionName)                          |    throughput<br/>_(number)_     |
+| await | **listCollectionsWithThroughput** ( )                                 |      list<br/>_(object[])_       |
+| await | **increaseCollectionThroughput** (collectionName)                     |     increase<br/>_(number)_      |
+| await | **updateCollectionThroughput** (collectionName, throughput)           |  new throughput<br/>_(number)_   |
+| await | **updateAllCollectionsThroughput** (throughput)                       | new throughputs<br/>_(number[])_ |
+| await | **resetThroughput** ()                                                | new throughputs<br/>_(number[])_ |
 
 ### Remarks
 
