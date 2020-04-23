@@ -22,7 +22,7 @@ The interface was changed with version 4 of this module. Previously there was a 
 const User = mongoose.model('User', mongooseSchema)
 wrap(User)
 
-// New interface (stable since v4.0.6):
+// New interface (stable since v4.0.7):
 const User = client.createMongooseModel('User', mongooseSchema, mongoose)
 ```
 
@@ -30,7 +30,7 @@ If you previously exported already prepared Mongoose-models from a project-folde
 
 ### Please note
 
-- Don't use version v4.0.0 to v4.0.5 because of their instability.
+- Don't use version v4.0.0 to v4.0.6 because of their instability.
 - Ensure that you use the Mongoose schema as second input and the connected Mongoose instance of your application as third argument to `client.createMongooseModel()`!
 - Ensure that your application runs `createClient()` and `await client.init()`, before!
 
