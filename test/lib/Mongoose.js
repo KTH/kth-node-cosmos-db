@@ -10,7 +10,7 @@ module.exports = {
   getTestObjectId,
   connectRealServer,
   ensureRealServerConnection,
-  disconnectRealServer
+  disconnectRealServer,
 }
 
 const assert = require('assert')
@@ -26,8 +26,8 @@ const Global = {
 
   realConnection: {
     connecting: false,
-    established: false
-  }
+    established: false,
+  },
 }
 
 async function start() {
@@ -42,7 +42,7 @@ async function start() {
 
   const mongooseOpts = {
     useNewUrlParser: true,
-    useUnifiedTopology: true
+    useUnifiedTopology: true,
   }
 
   mongoose.connection.on('error', error => {
@@ -98,11 +98,17 @@ function getTestObjectId() {
  * @param {string} input.connectionString
  * @param {string} input.databaseName
  * @param {boolean} [input.disableSslRejection]
+ * @param {number} [input.connectTimeoutMS]
  *
  * @returns {Promise}
  *      Resolves after a Mongoose connection was established
  */
-async function connectRealServer({ connectionString, databaseName, disableSslRejection = false }) {
+async function connectRealServer({
+  connectionString,
+  databaseName,
+  disableSslRejection = false,
+  connectTimeoutMS = 30000,
+}) {
   const { connecting, established } = Global.realConnection
   if (connecting || established) {
     return
@@ -116,7 +122,11 @@ async function connectRealServer({ connectionString, databaseName, disableSslRej
   const useNewUrlParser = true
   const useUnifiedTopology = true
 
-  await mongoose.connect(fullString, { useNewUrlParser, useUnifiedTopology })
+  await mongoose.connect(fullString, {
+    useNewUrlParser,
+    useUnifiedTopology,
+    serverSelectionTimeoutMS: connectTimeoutMS,
+  })
 
   Global.realConnection.connecting = false
   Global.realConnection.established = true

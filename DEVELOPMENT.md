@@ -143,3 +143,10 @@ By default, a database named "testDatabase" will be created in Cosmos DB. It wil
 # Change database name used for tests (Beware of possible data loss!)
 INTEGRATION_TEST_COSMOSDB_DATABASE=kthNodeUnitTests
 ```
+
+### Results
+
+Some simulation-results are saved into files for later access:
+
+- [SIMULATION.md](https://github.com/KTH/kth-node-cosmos-db/blob/master/SIMULATION.md) - Last basic throughput simulation
+- [SIMULATION-full.md](https://github.com/KTH/kth-node-cosmos-db/blob/master/SIMULATION-full.md) - Last complete throughput simulation

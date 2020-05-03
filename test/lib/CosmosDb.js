@@ -8,7 +8,7 @@ module.exports = {
 
   parseConnectionStringIntoUrl,
   composeUrlIntoPrimaryConnectionString,
-  composeUrlIntoMongoConnectionString
+  composeUrlIntoMongoConnectionString,
 }
 
 const assert = require('assert')
@@ -130,7 +130,7 @@ function parseConnectionStringIntoUrl(connectionString) {
 function composeUrlIntoMongoConnectionString({
   url,
   databaseName = null,
-  disableSslRejection = false
+  disableSslRejection = false,
 }) {
   const newUrl = new URL(url.href)
   newUrl.protocol = 'http:'

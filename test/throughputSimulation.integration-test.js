@@ -5,6 +5,8 @@
 
 jest.unmock('@azure/cosmos')
 
+const fs = require('fs')
+
 const mongoose = require('mongoose')
 const { table } = require('table')
 
@@ -13,109 +15,55 @@ const { CosmosDb: _CosmosDbTestUtils, Environment, Mongoose: _MongooseTestUtils 
 const { parseConnectionStringIntoUrl } = _CosmosDbTestUtils
 const {
   connectRealServer,
-  ensureRealServerConnection,
-  disconnectRealServer: disconnectMongoose
+  ensureRealServerConnection: ensureMongooseConnection,
+  disconnectRealServer: disconnectMongoose,
 } = _MongooseTestUtils
 
 const { createClient } = require('../lib/client')
 
-const ONE_MINUTE_TIMEOUT = 60000
-const LONG_TIMEOUT = 60 * ONE_MINUTE_TIMEOUT
-const ENV_DATABASE_CONNECTION = 'INTEGRATION_TEST_COSMOSDB_CONNECTION'
-const ENV_DATABASE_NAME = 'INTEGRATION_TEST_COSMOSDB_DATABASE'
+const {
+  getConfiguration,
+  getThroughputSimulations,
+  composeSimulationReport,
+} = require('./throughputSimulation.test-data')
 
 const ONE_KILOBYTE = 1024
 
+const ENV_DATABASE_CONNECTION = 'INTEGRATION_TEST_COSMOSDB_CONNECTION'
+const ENV_DATABASE_NAME = 'INTEGRATION_TEST_COSMOSDB_DATABASE'
+const ENV_RUN_FULL_SIMULATION = 'INTEGRATION_TEST_FULL_SET'
+
 const Global = {
-  mongooseModel: null,
-  results: []
+  CosmosClient: null,
+  MongooseModel: null,
+  results: [],
+  timestamps: {},
 }
 
 describe('Working kth-node-cosmos-db client', () => {
   beforeAll(Environment.saveState)
   beforeAll(Environment.simulateProduction)
-  beforeAll(_connectMongoose, ONE_MINUTE_TIMEOUT)
 
-  runTestsAboutHandleError()
+  it('(Establishing obligatory connection to Mongoose test server)', _connectMongoose, 5000)
+
+  runSimulationsAboutAutomaticIncrease()
 
   afterAll(disconnectMongoose)
   afterAll(Environment.restoreState)
 })
 
-function runTestsAboutHandleError() {
+function runSimulationsAboutAutomaticIncrease() {
   describe('automatically increases throughput during simulation', () => {
-    beforeAll(ensureRealServerConnection)
+    // beforeAll(ensureMongooseConnection)
+    beforeAll(_memorizeStartTimestamp)
 
-    const initialThroughput = 400
-    const collections = [{ name: 'updatesimulations', throughput: initialThroughput }]
-    const maxThroughput = 20000
-    const throughputStepsize = 200
+    const runFullSimulation = String(process.env[ENV_RUN_FULL_SIMULATION] || 'false') === 'true'
+    const testDataList = getThroughputSimulations(runFullSimulation)
 
-    let client
-
-    beforeAll(async () => {
-      const clientData = { collections, maxThroughput, throughputStepsize }
-      client = await _prepareTestDatabase(clientData)
-      await _prepareTestModelWithOneDocument({ client })
-    })
-
-    // const recordsets = {
-    //   large: [1490, 1490],
-    //   mediumsize: [149, 149],
-    //   small: [10, 10],
-    //   mixed: [10, 149, 1490]
-    // }
-    const recordsets = {
-      small: [2, 2],
-      mediumsize: [10, 10],
-      large: [100, 100],
-      'x-large': [1000, 1000],
-      mixed: [2, 10, 100, 1000]
-    }
-    const recordsetList = Object.keys(recordsets)
-    // const retryStrategyList = ['fastest', 'fast', 'good', 'cheapest', 'fourAttemptsOnly']
-    // const retryStrategyList = ['fastest', 'fast', 'good']
-    const retryStrategyList = ['good', 'fast', 'fastest', 'fastest', 'fast', 'good']
-    const modeList = ['findOneAndUpdate']
-
-    const testData = []
-    recordsetList.forEach(recordsetName => {
-      const recordSizes = recordsets[recordsetName]
-      retryStrategyList.forEach(retryStrategy => {
-        modeList.forEach(mode => {
-          testData.push([
-            `with ${recordsetName} recordsets (strategy "${retryStrategy}", operation "${mode}")`,
-            `${recordsetName} data`,
-            { recordSizes, mode, retryStrategy }
-          ])
-        })
-      })
-    })
-
-    it.each(testData)(
-      '%s',
-      async (...args) => {
-        // @ts-ignore
-        // eslint-disable-next-line no-unused-vars
-        const [fullName, shortName, { recordSizes, mode, retryStrategy }] = args
-        const model = _getTestModel()
-
-        await _runSimulationAsync({
-          client,
-          model,
-          fullName,
-          shortName,
-          recordSizes,
-          mode,
-          retryStrategy,
-          initialThroughput,
-          throughputStepsize
-        })
-      },
-      LONG_TIMEOUT
-    )
+    it.each(testDataList)('%s', (...args) => _runSimulationAsync(args[1]), 15000)
 
     afterAll(_showSimulationResults)
+    afterAll(_saveSimulationResultsIntoMarkdown)
   })
 }
 
@@ -124,8 +72,13 @@ async function _connectMongoose() {
     const connectionString = process.env[ENV_DATABASE_CONNECTION]
     const databaseName = process.env[ENV_DATABASE_NAME] || 'integrationTests'
     const disableSslRejection = true
-
-    await connectRealServer({ connectionString, databaseName, disableSslRejection })
+    const connectTimeoutMS = 2500
+    await connectRealServer({
+      connectionString,
+      databaseName,
+      disableSslRejection,
+      connectTimeoutMS,
+    })
   } catch (error) {
     throw new Error(
       'Real CosmosDB connection needed for integration tests: ' +
@@ -134,180 +87,189 @@ async function _connectMongoose() {
   }
 }
 
-async function _prepareTestDatabase({
-  collections = [],
-  maxThroughput = 10000,
-  defaultThroughput = null,
-  throughputStepsize = null
+async function _runSimulationAsync({
+  fullName,
+  shortName,
+  recordSizes,
+  mode,
+  retryStrategy,
+  throughputStepsize,
 }) {
+  ensureMongooseConnection()
+
+  const simulationSetup = { shortName, recordSizes, mode, retryStrategy, throughputStepsize }
+  const numberOfUpdateSteps = 2000
+
+  const statistics = {
+    items: 0,
+    kilobytes: 0,
+    timestamps: {},
+    throughput: {},
+    increase: '',
+    after: '(during preparation)',
+    seconds: 0,
+  }
+
+  try {
+    const config = getConfiguration()
+    const { initialThroughput } = config.cosmos
+
+    const clientData = { retryStrategy, throughputStepsize }
+    const { model, getCurrentThroughput } = await _prepareFreshClientAndModel(clientData)
+
+    const setup = _prepareSimulationRecords(recordSizes)
+
+    statistics.throughput.first = await getCurrentThroughput()
+    expect(statistics.throughput.first).toBe(initialThroughput)
+    statistics.timestamps.first = new Date().getTime()
+
+    for (let updateStep = 1; updateStep <= numberOfUpdateSteps; updateStep++) {
+      statistics.items = updateStep
+      statistics.kilobytes += await _useRecordAsync({ setup, model, mode, updateStep })
+      statistics.throughput.current = await getCurrentThroughput()
+      statistics.timestamps.current = new Date().getTime()
+      statistics.seconds =
+        Math.round((statistics.timestamps.current - statistics.timestamps.first) / 10) / 100
+      statistics.after = `${updateStep} items, ${statistics.kilobytes} kB, ${statistics.seconds} s`
+      statistics.speed = Math.round((statistics.items / statistics.seconds) * 10) / 10
+
+      if (statistics.throughput.current !== statistics.throughput.first) {
+        expect(statistics.throughput.current).toBeGreaterThanOrEqual(
+          initialThroughput + throughputStepsize
+        )
+
+        const increase = `${statistics.throughput.first} -> ${statistics.throughput.current}`
+        // eslint-disable-next-line no-console
+        console.log(
+          `\nRunning simulation ${fullName}:\n` +
+            `  Collection throughput was just automatically increased - aborting simulation\n `,
+          { increase, after: statistics.after }
+        )
+        _memorizeSimulationResult({ ...simulationSetup, ...statistics, increase })
+        return
+      }
+    }
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.log(`\nRunning simulation ${fullName}:\n  Error occured - simulation failed\n `, {
+      error: error.message,
+      after: statistics.after,
+    })
+    const shortErrorText = error.code === 16500 ? 'RU error' : 'failed'
+    _memorizeSimulationResult({ ...simulationSetup, ...statistics, increase: shortErrorText })
+    return
+  }
+
+  throw new Error(
+    `Collection throughput was not increased - consider making simulation longer than ${numberOfUpdateSteps} steps`
+  )
+}
+
+async function _prepareFreshClientAndModel({ retryStrategy, throughputStepsize }) {
+  const config = getConfiguration()
+  const { collectionName, modelName, modelDefinition, documentTemplate, shardKey } = config.mongoose
+  const { fallbackDatabaseName, maxThroughput, collections } = config.cosmos
+
   const connectionString = process.env[ENV_DATABASE_CONNECTION]
+  const databaseName = process.env[ENV_DATABASE_NAME] || fallbackDatabaseName
 
   const { url, key } = parseConnectionStringIntoUrl(connectionString)
   const { hostname: host, port, username } = url
 
-  const validCosmosDbOptions = {
+  const cosmosDbOptions = {
     host,
     port,
-    db: process.env[ENV_DATABASE_NAME] || 'integrationTest',
+    db: databaseName,
     collections,
     username,
     password: key,
+    throughputStepsize,
     maxThroughput,
     disableSslRejection: true,
-    createCollectionsWithMongoose: true
+    createCollectionsWithMongoose: true,
+    retryStrategy,
   }
 
-  if (defaultThroughput != null) {
-    validCosmosDbOptions.defaultThroughput = defaultThroughput
+  Global.CosmosClient = createClient(cosmosDbOptions)
+
+  Environment.simulateDevelopment()
+  await Global.CosmosClient.deleteCollection(collectionName, { safetyFlag: 'Yes, do it!' })
+  Environment.simulateProduction()
+
+  await Global.CosmosClient.init()
+
+  const schemaOptions = { collection: collectionName, shardKey, bufferCommands: false }
+  const testSchema = new mongoose.Schema(modelDefinition, schemaOptions)
+
+  if (Global.MongooseModel != null) {
+    mongoose.connection.deleteModel(modelName)
   }
-  if (throughputStepsize != null) {
-    validCosmosDbOptions.throughputStepsize = throughputStepsize
-  }
+  Global.MongooseModel = Global.CosmosClient.createMongooseModel(modelName, testSchema, mongoose)
 
-  const client = createClient(validCosmosDbOptions)
-  await client.init()
+  await Global.MongooseModel.createCollection()
 
-  return client
-}
-
-async function _prepareTestModelWithOneDocument({ client }) {
-  if (Global.mongooseModel != null) {
-    throw new Error("Can't prepare more than one test model - delete the old model, first")
-  }
-
-  const modelDefinition = { name: String, updateStep: Number, data: String }
-  const documentTemplate = { name: 'Test, Integration', updateStep: -1, data: 'abcdefg' }
-
-  const testSchema = new mongoose.Schema(modelDefinition)
-  const Model = client.createMongooseModel('UpdateSimulation', testSchema, mongoose)
-
-  const randomDocument = await Model.findOne({})
+  const randomDocument = await Global.MongooseModel.findOne({})
   if (randomDocument == null) {
-    const newDocument = new Model(documentTemplate)
+    const newDocument = new Global.MongooseModel(documentTemplate)
     await newDocument.save()
   }
 
-  Global.mongooseModel = Model
-  return Model
-}
+  await Global.CosmosClient.resetThroughput()
 
-function _getTestModel() {
-  if (Global.mongooseModel == null) {
-    throw new Error("Can't find test model - create one, first")
-  }
-  return Global.mongooseModel
-}
-
-function _deleteTestModelInMongoose() {
-  if (Global.mongooseModel == null) {
-    return
+  const getCurrentThroughput = async () => {
+    const throughput = await Global.CosmosClient.getCollectionThroughput(collectionName)
+    return throughput
   }
 
-  const { modelName } = Global.mongooseModel
-  mongoose.connection.deleteModel(modelName)
-
-  Global.mongooseModel = null
+  return { client: Global.CosmosClient, model: Global.MongooseModel, getCurrentThroughput }
 }
 
 function _prepareSimulationRecords(sizeList) {
   const setup = {
     testRecords: [],
-    testRecordSizes: []
+    testRecordSizes: [],
   }
   sizeList.forEach(kilobytes => {
     setup.testRecords.push({
       updateStep: null,
-      data: _composeRandomChars(kilobytes * ONE_KILOBYTE)
+      data: _composeRandomChars(kilobytes * ONE_KILOBYTE),
     })
     setup.testRecordSizes.push(kilobytes)
   })
   return setup
 }
 
-async function _useRecordAsync({ setup, model, updateStep }) {
+async function _useRecordAsync({ setup, model, mode, updateStep }) {
+  const config = getConfiguration()
+  const { name } = config.mongoose.documentTemplate
+
   const index = (updateStep - 1) % setup.testRecords.length
   const updateData = setup.testRecords[index]
-  updateData.updateStep = updateStep
   const size = setup.testRecordSizes[index]
 
-  await model.findOneAndUpdate({ name: 'Test, Integration' }, updateData)
-  const document = await model.findOne({ name: 'Test, Integration' })
-  // @ts-ignore
-  expect(document.updateStep).toBe(updateStep)
+  let document
 
-  return size
-}
-
-// const document = await Model.findOne({ name: 'Test, Integration' })
-// // @ts-ignore
-// document.age = step
-// await document.save()
-
-// if (step === 1) {
-//   console.log('findOne()', Model.findOne.toString())
-//   console.log('save()', document.save.toString())
-// }
-
-async function _runSimulationAsync({
-  client,
-  model,
-  fullName,
-  shortName,
-  recordSizes,
-  mode,
-  retryStrategy,
-  initialThroughput,
-  throughputStepsize
-}) {
-  await client.resetThroughput()
-  client.setOption('retryStrategy', retryStrategy)
-
-  const setup = _prepareSimulationRecords(recordSizes)
-
-  const throughputInfo1 = await client.listCollectionsWithThroughput()
-  const { throughput: throughput1 } = throughputInfo1[0]
-  expect(throughput1).toBe(initialThroughput)
-
-  const numberOfUpdateSteps = 2000
-  let kilobytes = 0
-  // await _wait(1000)
-
-  for (let updateStep = 1; updateStep <= numberOfUpdateSteps; updateStep++) {
-    kilobytes += await _useRecordAsync({ setup, model, updateStep })
-
-    const throughputInfo2 = await client.listCollectionsWithThroughput()
-    const { throughput: throughput2 } = throughputInfo2[0]
-
-    if (throughput2 !== throughput1) {
-      expect(throughput2).toBeGreaterThanOrEqual(initialThroughput + throughputStepsize)
-
-      const itemUpdates = updateStep
-
-      // eslint-disable-next-line no-console
-      console.log(
-        `\nRunning simulation ${fullName}:\n` +
-          `  Collection throughput was just automatically increased ` +
-          `from ${throughput1} to ${throughput2}\n` +
-          `  - aborting simulation after updating ${itemUpdates} items ` +
-          `with a total of ${kilobytes} kilobytes`
-      )
-
-      _memorizeSimulationResult({
-        name: shortName,
-        mode,
-        retryStrategy,
-        recordSizes,
-        increase: `${throughput1} -> ${throughput2}`,
-        itemUpdates,
-        kilobytes
-      })
-      return
-    }
+  switch (mode) {
+    case 'update':
+      updateData.updateStep = updateStep
+      await model.findOneAndUpdate({ name }, updateData)
+      break
+    case 'update+find':
+      updateData.updateStep = updateStep
+      await model.findOneAndUpdate({ name }, updateData)
+      document = await model.findOne({ name })
+      expect(document.updateStep).toBe(updateStep)
+      break
+    case 'find+save':
+      document = await model.findOne({ name })
+      document.updateStep = updateStep
+      await document.save()
+      break
+    default:
+      throw new Error(`_useRecordAsync() failed: Unknown simulation mode "${mode}"`)
   }
 
-  throw new Error(
-    `Collection throughput was not increased - consider making simulation longer than ${numberOfUpdateSteps} steps`
-  )
+  return size
 }
 
 function _composeRandomChars(amount) {
@@ -318,34 +280,56 @@ function _composeRandomChars(amount) {
   return output
 }
 
-function _memorizeSimulationResult({
-  name,
-  mode,
-  retryStrategy,
-  recordSizes,
-  increase,
-  itemUpdates,
-  kilobytes
-}) {
+function _memorizeSimulationResult(data) {
+  const {
+    shortName,
+    mode,
+    retryStrategy,
+    recordSizes,
+    throughputStepsize,
+    increase,
+    after,
+    speed,
+  } = data
+
   if (Global.results.length === 0) {
-    Global.results.push(['#', 'name', 'mode', 'retry', 'records', 'increase', 'items', 'kBytes'])
+    Global.results.push([
+      '#',
+      'data size',
+      'records (kB)',
+      'mode',
+      'strategy',
+      'stepsize',
+      'increase',
+      'after',
+      'items/s',
+    ])
   }
 
   const num = Global.results.length
 
   Global.results.push([
     num,
-    name,
+    shortName,
+    recordSizes,
     mode,
     retryStrategy,
-    recordSizes,
+    throughputStepsize,
     increase,
-    itemUpdates,
-    kilobytes
+    after,
+    speed,
   ])
 }
 
+function _memorizeStartTimestamp() {
+  Global.timestamps.start = new Date().getTime()
+}
+
 function _showSimulationResults() {
+  if (Global.results.length === 0) {
+    return
+  }
+
   function drawHorizontalLine(index, size) {
     const currItem = Global.results[index - 1] || []
     const nextItem = Global.results[index] || []
@@ -358,8 +342,38 @@ function _showSimulationResults() {
   console.log(`\nAll simulation results\n======================\n${resultTable}`)
 }
 
-async function _wait(ms) {
+function _saveSimulationResultsIntoMarkdown(done) {
+  if (Global.results.length === 0) {
+    return
+  }
+
+  let markdown = ''
+  Global.results.forEach((item, index) => {
+    markdown += `| ${item.join(' | ')} |\n`
+    if (index === 0) {
+      markdown += `| ${item.map(() => '---').join(' | ')} |\n`
+    }
+  })
+
+  const now = new Date().getTime()
+  const duration = Math.round((now - Global.timestamps.start) / 100) / 10
+
+  const start = new Date()
+  start.setTime(Global.timestamps.start)
+
+  const output = composeSimulationReport({
+    results: markdown,
+    start: start.toString(),
+    duration,
+  })
+
+  const runFullSimulation = String(process.env[ENV_RUN_FULL_SIMULATION] || 'false') === 'true'
+
+  fs.writeFile(runFullSimulation ? './SIMULATION-full.md' : './SIMULATION.md', output, done)
+}
+
+async function _wait(timeoutMS) {
   await new Promise(resolve => {
-    setTimeout(resolve, ms)
+    setTimeout(resolve, timeoutMS)
   })
 }
