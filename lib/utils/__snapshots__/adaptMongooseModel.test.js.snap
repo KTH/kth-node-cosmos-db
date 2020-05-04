@@ -7,11 +7,10 @@ exports[`Mongoose model wrapper function adaptMongooseModel() - when looking at 
     \`kth-node-cosmos-db: Internal error - Failed to call Mongoose method \\"\${methodName}\\"\`
   );
   let errorHandlerResult = {};
-  const strategyName = client.getOption(\\"retryStrategy\\");
-  const strategy = StrategyUtils.getRetryStrategy(strategyName); // @ts-ignore
-  const { timeoutPerAttempt, maxAttempts } = strategy;
-  const _maxAttempts = maxAttempts > 0 ? maxAttempts : 20;
-  for (let attempt = 0, timeout = 0; attempt < _maxAttempts; attempt++) {
+  const { timeoutPerAttempt, maxAttempts } = _getRetryStrategyConfiguration(
+    client
+  );
+  for (let attempt = 0, timeout = 0; attempt < maxAttempts; attempt++) {
     const newTimeout = timeoutPerAttempt[attempt];
     if (
       newTimeout == null ||

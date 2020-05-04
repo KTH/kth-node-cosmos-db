@@ -50,6 +50,7 @@ function getThroughputSimulations(fullSet = false) {
   const recordsetList = Object.keys(recordsets)
 
   const modeList = fullSet ? ['update', 'update+find', 'find+save'] : ['update+find', 'find+save']
+  // : ['update+find', 'find+save', 'azureSave']
 
   const retryStrategyList = fullSet
     ? ['fastest', 'fast', 'good', 'cheapest', 'fourAttemptsOnly']

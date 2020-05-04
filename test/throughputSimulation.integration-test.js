@@ -119,9 +119,14 @@ async function _runSimulationAsync({
 
     const setup = _prepareSimulationRecords(recordSizes)
 
-    statistics.throughput.first = await getCurrentThroughput()
-    expect(statistics.throughput.first).toBe(initialThroughput)
     statistics.timestamps.first = new Date().getTime()
+
+    statistics.throughput.first = await getCurrentThroughput()
+    if (statistics.throughput.first !== initialThroughput) {
+      throw new Error(
+        `Initial throughput mismatch - got ${statistics.throughput.first} instead of ${initialThroughput}`
+      )
+    }
 
     for (let updateStep = 1; updateStep <= numberOfUpdateSteps; updateStep++) {
       statistics.items = updateStep
@@ -134,9 +139,13 @@ async function _runSimulationAsync({
       statistics.speed = Math.round((statistics.items / statistics.seconds) * 10) / 10
 
       if (statistics.throughput.current !== statistics.throughput.first) {
-        expect(statistics.throughput.current).toBeGreaterThanOrEqual(
-          initialThroughput + throughputStepsize
-        )
+        if (statistics.throughput.current < initialThroughput + throughputStepsize) {
+          throw new Error(
+            `Updated throughput mismatch - got ${
+              statistics.throughput.current
+            } instead of at least ${initialThroughput + throughputStepsize}`
+          )
+        }
 
         const increase = `${statistics.throughput.first} -> ${statistics.throughput.current}`
         // eslint-disable-next-line no-console
@@ -199,6 +208,7 @@ async function _prepareFreshClientAndModel({ retryStrategy, throughputStepsize }
   await Global.CosmosClient.init()
 
   const schemaOptions = { collection: collectionName, shardKey, bufferCommands: false }
+  // const schemaOptions = { collection: collectionName, shardKey }
   const testSchema = new mongoose.Schema(modelDefinition, schemaOptions)
 
   if (Global.MongooseModel != null) {
@@ -209,9 +219,11 @@ async function _prepareFreshClientAndModel({ retryStrategy, throughputStepsize }
   await Global.MongooseModel.createCollection()
 
   const randomDocument = await Global.MongooseModel.findOne({})
+  // const randomDocument = await Global.MongooseModel.azureFindOne({})
   if (randomDocument == null) {
     const newDocument = new Global.MongooseModel(documentTemplate)
     await newDocument.save()
+    // await Global.MongooseModel.azureSaveDocument(newDocument)
   }
 
   await Global.CosmosClient.resetThroughput()
@@ -254,6 +266,10 @@ async function _useRecordAsync({ setup, model, mode, updateStep }) {
       updateData.updateStep = updateStep
       await model.findOneAndUpdate({ name }, updateData)
       break
+    // case 'azureUpdate':
+    //   updateData.updateStep = updateStep
+    //   await model.azureFindOneAndUpdate({ name }, updateData)
+    //   break
     case 'update+find':
       updateData.updateStep = updateStep
       await model.findOneAndUpdate({ name }, updateData)
@@ -265,6 +281,12 @@ async function _useRecordAsync({ setup, model, mode, updateStep }) {
       document.updateStep = updateStep
       await document.save()
       break
+    // case 'azureSave':
+    //   document = await model.findOne({ name })
+    //   // document = await model.azureFindOne({ name })
+    //   document.updateStep = updateStep
+    //   await model.azureSaveDocument(document)
+    //   break
     default:
       throw new Error(`_useRecordAsync() failed: Unknown simulation mode "${mode}"`)
   }
