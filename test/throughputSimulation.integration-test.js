@@ -44,7 +44,7 @@ describe('Working kth-node-cosmos-db client', () => {
   beforeAll(Environment.saveState)
   beforeAll(Environment.simulateProduction)
 
-  it('(Establishing obligatory connection to Mongoose test server)', _connectMongoose, 5000)
+  it('(Establishing obligatory connection to Cosmos DB test server)', _connectMongoose, 5000)
 
   runSimulationsAboutAutomaticIncrease()
 
@@ -274,10 +274,24 @@ async function _useRecordAsync({ setup, model, mode, updateStep }) {
       updateData.updateStep = updateStep
       await model.findOneAndUpdate({ name }, updateData)
       document = await model.findOne({ name })
-      expect(document.updateStep).toBe(updateStep)
+      if (document == null) {
+        throw new Error(
+          `Update of test record failed - findOne({ name: "${name}" }) returned nothing`
+        )
+      }
+      if (document.updateStep !== updateStep) {
+        throw new Error(
+          `Update of test record failed - expected updateStep to be ${updateStep}, but got ${document.updateStep}`
+        )
+      }
       break
     case 'find+save':
       document = await model.findOne({ name })
+      if (document == null) {
+        throw new Error(
+          `Update of test record failed - findOne({ name: "${name}" }) returned nothing`
+        )
+      }
       document.updateStep = updateStep
       await document.save()
       break
