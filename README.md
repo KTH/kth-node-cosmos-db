@@ -1,6 +1,6 @@
 # kth-node-cosmos-db ![Build](https://travis-ci.org/KTH/kth-node-cosmos-db.svg?branch=master 'Build')
 
-Our Node.js applications at KTH in Stockholm use Mongoose to access CosmosDB in Azure. This module is a wrapper around "@azure/cosmos" designed for those applications.
+Our Node.js applications at KTH in Stockholm use Mongoose to access CosmosDB in Azure. This module is a wrapper around "@azure/cosmos" and designed for those applications.
 
 ### Contents
 
@@ -38,11 +38,15 @@ If you previously exported already prepared Mongoose-models from a project-folde
 
 Using this module instead of directly including "@azure/cosmos" into a project has the following benefits:
 
-- Any Mongoose action will automatically manage Azure's provision throughput, too.
+- Many Mongoose actions will automatically increase Azure's provision throughput, if needed. For now, this applies to the following model functions: `find()`, `findById()`, `findOne()`, `findOneAndUpdate()`, `update()`, `updateOne()`, `updateMany()`, `remove()`.
 
-  _Especially when a "Too many requests" error occurs during a database action, the wrapper will increase the throughput of the related collection with a fixed amount and then retry the action. The "Too many requests" error will mainly occur when importing foreign data, e.g. into an API project. When an import is done, the application should reset all collections throughput to their default value using `client.resetThroughput()`._
+  _When a "Too many requests" error (with internal code 16500) occurs during a database action, the wrapper will increase the throughput of the related collection with a fixed amount and then retry the action. The "Too many requests" error will mainly occur when importing foreign data, e.g. into an API project. When an import is done, the application should reset all collections throughput to their default value using `client.resetThroughput()`._
 
-- The module can also set a batchSize to avoid Cursor Timeout errors during find-operations.
+- The module can also set a batchSize to avoid Cursor Timeout errors during `find()`-operations.
+
+- **New in v4.0.11:** It's recommended to save a document with `await model.azureSaveDocument(document)`. That way, you will get automatic increase of throughput with `save()`, too.
+
+  _"kth-node-cosmos-db" can't handle throughput problems which happen during normal `await document.save()`._
 
 ## Remarks on local development
 
@@ -62,11 +66,20 @@ USE_COSMOS_DB=true
 
 1. `client.createMongooseModel()` has to be used instead of `mongoose.model()` to prepare any Mongoose model and add the automatic throughput management to it.
 
+1. Use the Mongoose models like always.
+
+   **New in v4.0.11:** Every prepared Mongoose model will now have two additional methods:
+
+   ```js
+   await model.azureSaveDocument(document)
+   await model.azureWrapCallback(callback)
+   ```
+
 1. `await client.resetThroughput()` is especially useful after data imports to avoid the throughput value to stay high for a longer time. _You might save money this way in Azure._
 
-## Usage
+## Basic usage
 
-### `createClient( options )`
+### `createClient( options )` and `await client.init()`
 
 **Prepare database and collections**
 
@@ -95,9 +108,9 @@ const client = createClient(cosmosDbOptions)
 await client.init()
 ```
 
-The option "collections" is an array of objects. Each object must have the "name" attribute while the "throughput" attribute is optional.
+- The option "collections" is an array of objects. Each object must have the "name" attribute while the "throughput" attribute is optional.
 
-The throughput attribute makes it possible to have different default throughputs for each collections. If no throughput attribute is added it will default to the global defaultThroughput option.
+- The throughput attribute makes it possible to have different default throughputs for each collections. If no throughput attribute is added it will default to the global defaultThroughput option.
 
 ### `getClient()`
 
@@ -107,37 +120,53 @@ You can use `getClient()` whenever you need access to the module's methods, e.g.
 
 **Prepare a Mongoose model**
 
-When defining a Mongoose model don't use `mongoose.model()` - use `client.createMongooseModel()` instead. This allows "kth-node-cosmos-db" to automatically handle "Too many requests" errors from CosmosDB and retry your Mongoose operation after increasing the throughput value.
+When defining a Mongoose model don't use `mongoose.model()` - use `client.createMongooseModel()` instead.
 
-`client.createMongooseModel()` internally uses `mongoose.model()` and returns the model. The result can then be used like any other Mongoose model.
+_This allows "kth-node-cosmos-db" to automatically handle "Too many requests" errors from CosmosDB and retry your Mongoose operation after increasing the throughput value._
 
-_Please ensure to initialize the module with `createClient()` and `await client.init()` before using `client.createMongooseModel()`._
+- `client.createMongooseModel()` internally uses `mongoose.model()` and returns the Mongoose model. The result can then be used like any other model.
 
-```javascript
-// Example
-const { getClient } = require('kth-node-cosmos-db')
-const mongoose = require('mongoose')
+  _Please ensure to initialize the module with `createClient()` and `await client.init()` before using `client.createMongooseModel()`._
 
-...
+  ```js
+  // Example
+  const { getClient } = require('kth-node-cosmos-db')
+  const mongoose = require('mongoose')
 
-const userSchema = mongoose.Schema({ name: String, age: Number })
+  ...
 
-const client = getClient()
-const User = client.createMongooseModel('User', userSchema, mongoose)
+  const userSchema = mongoose.Schema({ name: String, age: Number })
 
-...
+  const client = getClient()
+  const User = client.createMongooseModel('User', userSchema, mongoose)
 
-const testUser = await User.findOne({ name: "Test" })
-```
+  ...
 
-`client.createMongooseModel()` will let `mongoose.model()` determine which collection name (e.g. "users") shall be used for a given model (e.g. "User"). If you don't like this behaviour, you might want to set the option "collection" in your schema before using `client.createMongooseModel()`:
+  const testUser = await User.findOne({ name: "Test" })
+  ```
 
-```javascript
-// User-defined collection name:
-...
-const userSchema = mongoose.Schema({ name: String, age: Number }, { collection: 'UserCollection' })
-...
-```
+- **Collection name:**
+  `client.createMongooseModel()` will let `mongoose.model()` determine which collection name (e.g. "users") shall be used for a given model (e.g. "User"). If you don't like this behaviour, you might want to set the option "collection" in your schema before using `client.createMongooseModel()`:
+
+  ```js
+  // User-defined collection name:
+  ...
+  const userSchema = mongoose.Schema({ name: String, age: Number }, { collection: 'UserCollection' })
+  ...
+  ```
+
+- The following model-methods are changed to automatically handle errors regarding the current Azure throughput-limit: `find()`, `findById()`, `findOne()`, `findOneAndUpdate()`, `update()`, `updateOne()`, `updateMany()`, `remove()`
+
+- `await model.azureSaveDocument(document)` _(new in v4.0.11)_
+  Use the added method "azureSaveDocument" instead of `document.save() to automatically increase Azure throughput if needed even when saving a Mongoose document.
+
+- `await model.azureWrapCallback(callback)` _(new in v4.0.11)_
+  The added method "azureWrapCallback" will automatically manage Azure throughput problems for you even with other Mongoose methods.
+
+  ```js
+  // Example
+  await model.azureWrapCallback(() => document.remove())
+  ```
 
 ### `client.resetThroughput()`
 

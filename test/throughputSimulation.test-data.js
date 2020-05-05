@@ -44,19 +44,21 @@ function getThroughputSimulations(fullSet = false) {
       }
     : {
         medium: [10, 10],
-        'x-large': [1000, 1000],
         mixed: [2, 10, 100, 1000],
       }
   const recordsetList = Object.keys(recordsets)
 
-  const modeList = fullSet ? ['update', 'update+find', 'find+save'] : ['update+find', 'find+save']
-  // : ['update+find', 'find+save', 'azureSave']
+  const modeList = fullSet
+    ? ['update', 'azureUpdate', 'update+', 'azureUpdate+', 'failing save', 'azureSave', 'azureWrap']
+    : ['update+', 'azureUpdate+', 'failing save', 'azureSave', 'azureWrap']
+
+  // modeList.push('failing save 2')
 
   const retryStrategyList = fullSet
     ? ['fastest', 'fast', 'good', 'cheapest', 'fourAttemptsOnly']
     : ['good']
 
-  const throughputStepsizeList = fullSet ? [100, 200] : [200]
+  const throughputStepsizeList = fullSet ? [200] : [200]
 
   const testDataList = []
 

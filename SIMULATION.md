@@ -1,19 +1,23 @@
 # Throughput simulation
 
-The last simulations were run on Mon May 04 2020 15:45:52 GMT+0200 (Central European Summer Time).
+The last simulations were run on Tue May 05 2020 22:27:47 GMT+0200 (Central European Summer Time).
 
-In total, it took 28.1 seconds.
+In total, it took 43.2 seconds.
 
 ## Results
 
-| #   | data size | records (kB)  | mode        | strategy | stepsize | increase    | after                        | items/s |
-| --- | --------- | ------------- | ----------- | -------- | -------- | ----------- | ---------------------------- | ------- |
-| 1   | medium    | 10,10         | update+find | good     | 200      | 400 -> 600  | 37 items, 370 kB, 2.53 s     | 14.6    |
-| 2   | medium    | 10,10         | find+save   | good     | 200      | RU error    | 65 items, 650 kB, 4.03 s     | 16.1    |
-| 3   | x-large   | 1000,1000     | update+find | good     | 200      | 400 -> 800  | 1 items, 1000 kB, 0.78 s     | 1.3     |
-| 4   | x-large   | 1000,1000     | find+save   | good     | 200      | RU error    | 123 items, 123000 kB, 7.54 s | 16.3    |
-| 5   | mixed     | 2,10,100,1000 | update+find | good     | 200      | 400 -> 1000 | 4 items, 1112 kB, 1.39 s     | 2.9     |
-| 6   | mixed     | 2,10,100,1000 | find+save   | good     | 200      | RU error    | 95 items, 25688 kB, 5.62 s   | 16.9    |
+| #   | data size | records (kB)  | mode         | strategy | stepsize | increase    | after                       | items/s |
+| --- | --------- | ------------- | ------------ | -------- | -------- | ----------- | --------------------------- | ------- |
+| 1   | medium    | 10,10         | update+      | good     | 200      | 400 -> 600  | 39 items, 390 kB, 2.67 s    | 14.6    |
+| 2   | medium    | 10,10         | azureUpdate+ | good     | 200      | 400 -> 600  | 18 items, 180 kB, 1.38 s    | 13      |
+| 3   | medium    | 10,10         | failing save | good     | 200      | RU error    | 38 items, 380 kB, 2.21 s    | 17.2    |
+| 4   | medium    | 10,10         | azureSave    | good     | 200      | 400 -> 600  | 86 items, 860 kB, 5.21 s    | 16.5    |
+| 5   | medium    | 10,10         | azureWrap    | good     | 200      | 400 -> 600  | 104 items, 1040 kB, 6.45 s  | 16.1    |
+| 6   | mixed     | 2,10,100,1000 | update+      | good     | 200      | 400 -> 1000 | 4 items, 1112 kB, 1.37 s    | 2.9     |
+| 7   | mixed     | 2,10,100,1000 | azureUpdate+ | good     | 200      | 400 -> 1000 | 4 items, 1112 kB, 1.37 s    | 2.9     |
+| 8   | mixed     | 2,10,100,1000 | failing save | good     | 200      | RU error    | 70 items, 18916 kB, 3.92 s  | 17.9    |
+| 9   | mixed     | 2,10,100,1000 | azureSave    | good     | 200      | 400 -> 600  | 70 items, 18916 kB, 4.3 s   | 16.3    |
+| 10  | mixed     | 2,10,100,1000 | azureWrap    | good     | 200      | 400 -> 600  | 110 items, 30036 kB, 6.87 s | 16      |
 
 ## Configuration
 

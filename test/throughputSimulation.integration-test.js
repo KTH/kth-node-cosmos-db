@@ -266,11 +266,8 @@ async function _useRecordAsync({ setup, model, mode, updateStep }) {
       updateData.updateStep = updateStep
       await model.findOneAndUpdate({ name }, updateData)
       break
-    // case 'azureUpdate':
-    //   updateData.updateStep = updateStep
-    //   await model.azureFindOneAndUpdate({ name }, updateData)
-    //   break
-    case 'update+find':
+
+    case 'update+':
       updateData.updateStep = updateStep
       await model.findOneAndUpdate({ name }, updateData)
       document = await model.findOne({ name })
@@ -285,7 +282,8 @@ async function _useRecordAsync({ setup, model, mode, updateStep }) {
         )
       }
       break
-    case 'find+save':
+
+    case 'failing save':
       document = await model.findOne({ name })
       if (document == null) {
         throw new Error(
@@ -295,12 +293,61 @@ async function _useRecordAsync({ setup, model, mode, updateStep }) {
       document.updateStep = updateStep
       await document.save()
       break
-    // case 'azureSave':
-    //   document = await model.findOne({ name })
-    //   // document = await model.azureFindOne({ name })
-    //   document.updateStep = updateStep
-    //   await model.azureSaveDocument(document)
-    //   break
+
+    case 'failing save 2':
+      document = await model.findOne({ name })
+      if (document == null) {
+        throw new Error(
+          `Update of test record failed - findOne({ name: "${name}" }) returned nothing`
+        )
+      }
+      // document.updateStep = updateStep
+      await document.save()
+      break
+
+    case 'azureUpdate':
+      updateData.updateStep = updateStep
+      await model.azureFindOneAndUpdate({ name }, updateData)
+      break
+
+    case 'azureUpdate+':
+      updateData.updateStep = updateStep
+      await model.azureFindOneAndUpdate({ name }, updateData)
+      document = await model.azureFindOne({ name })
+      if (document == null) {
+        throw new Error(
+          `Update of test record failed - findOne({ name: "${name}" }) returned nothing`
+        )
+      }
+      if (document.updateStep !== updateStep) {
+        throw new Error(
+          `Update of test record failed - expected updateStep to be ${updateStep}, but got ${document.updateStep}`
+        )
+      }
+      break
+
+    case 'azureSave':
+      document = await model.findOne({ name })
+      if (document == null) {
+        throw new Error(
+          `Update of test record failed - findOne({ name: "${name}" }) returned nothing`
+        )
+      }
+      document.updateStep = updateStep
+      await model.azureSaveDocument(document)
+      break
+
+    case 'azureWrap':
+      document = await model.azureWrapCallback(() => model.findOne({ name }))
+      if (document == null) {
+        throw new Error(
+          `Update of test record failed - findOne({ name: "${name}" }) returned nothing`
+        )
+      }
+      document.updateStep = updateStep
+      await model.azureWrapCallback(() => document.save())
+      break
+
     default:
       throw new Error(`_useRecordAsync() failed: Unknown simulation mode "${mode}"`)
   }
