@@ -52,7 +52,7 @@ function getThroughputSimulations(fullSet = false) {
     ? ['update', 'azureUpdate', 'update+', 'azureUpdate+', 'failing save', 'azureSave', 'azureWrap']
     : ['update+', 'azureUpdate+', 'failing save', 'azureSave', 'azureWrap']
 
-  // modeList.push('failing save 2')
+  // modeList.splice(2, 0, 'failing save 2')
 
   const retryStrategyList = fullSet
     ? ['fastest', 'fast', 'good', 'cheapest', 'fourAttemptsOnly']

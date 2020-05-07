@@ -48,6 +48,7 @@ describe('Working kth-node-cosmos-db client', () => {
 
   runSimulationsAboutAutomaticIncrease()
 
+  // afterAll(() => _wait(5000).then(disconnectMongoose))
   afterAll(disconnectMongoose)
   afterAll(Environment.restoreState)
 })
@@ -57,7 +58,7 @@ function runSimulationsAboutAutomaticIncrease() {
     // beforeAll(ensureMongooseConnection)
     beforeAll(_memorizeStartTimestamp)
 
-    const runFullSimulation = String(process.env[ENV_RUN_FULL_SIMULATION] || 'false') === 'true'
+    const runFullSimulation = String(process.env[ENV_RUN_FULL_SIMULATION]) === 'true'
     const testDataList = getThroughputSimulations(runFullSimulation)
 
     it.each(testDataList)('%s', (...args) => _runSimulationAsync(args[1]), 15000)
@@ -203,6 +204,7 @@ async function _prepareFreshClientAndModel({ retryStrategy, throughputStepsize }
 
   Environment.simulateDevelopment()
   await Global.CosmosClient.deleteCollection(collectionName, { safetyFlag: 'Yes, do it!' })
+  // await _wait(1000)
   Environment.simulateProduction()
 
   await Global.CosmosClient.init()
@@ -213,6 +215,7 @@ async function _prepareFreshClientAndModel({ retryStrategy, throughputStepsize }
 
   if (Global.MongooseModel != null) {
     mongoose.connection.deleteModel(modelName)
+    // await _wait(1000)
   }
   Global.MongooseModel = Global.CosmosClient.createMongooseModel(modelName, testSchema, mongoose)
 
@@ -295,14 +298,15 @@ async function _useRecordAsync({ setup, model, mode, updateStep }) {
       break
 
     case 'failing save 2':
-      document = await model.findOne({ name })
+      document = await model.azureFindOne({ name })
       if (document == null) {
         throw new Error(
           `Update of test record failed - findOne({ name: "${name}" }) returned nothing`
         )
       }
       // document.updateStep = updateStep
-      await document.save()
+      // await document.save()
+      await model.azureSaveDocument(document)
       break
 
     case 'azureUpdate':

@@ -2,7 +2,6 @@
 
 exports[`Mongoose model wrapper function adaptMongooseModel() - when looking at the code of single methods in production mode - overloads find() matching snapshot 1`] = `
 "async function wrapper(...methodArgs) {
-  const model = this;
   let mongooseError = new Error(
     \`kth-node-cosmos-db: Internal error - Failed to call Mongoose method \\"\${methodName}\\"\`
   );
