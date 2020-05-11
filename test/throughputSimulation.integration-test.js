@@ -164,6 +164,7 @@ async function _runSimulationAsync({
     console.log(`\nRunning simulation ${fullName}:\n  Error occured - simulation failed\n `, {
       error: error.message,
       after: statistics.after,
+      // details: error,
     })
     const shortErrorText = error.code === 16500 ? 'RU error' : 'failed'
     _memorizeSimulationResult({ ...simulationSetup, ...statistics, increase: shortErrorText })
@@ -221,13 +222,27 @@ async function _prepareFreshClientAndModel({ retryStrategy, throughputStepsize }
 
   await Global.MongooseModel.createCollection()
 
-  const randomDocument = await Global.MongooseModel.findOne({})
-  // const randomDocument = await Global.MongooseModel.azureFindOne({})
+  const query = Global.MongooseModel.where({}).findOne()
+  // const query = Global.MongooseModel.findOne({})
+  // console.log(1, { exec: query.exec.toString(), then: query.then.toString() })
+  const randomDocument = await query
+  // console.log(2, { exec: query.exec.toString(), then: query.then.toString() })
+  // const randomDocument = await Global.MongooseModel.findOne({})
   if (randomDocument == null) {
     const newDocument = new Global.MongooseModel(documentTemplate)
+    // console.log(1, { save: newDocument.save.toString() })
     await newDocument.save()
-    // await Global.MongooseModel.azureSaveDocument(newDocument)
+    // console.log(2, { save: newDocument.save.toString() })
   }
+
+  // console.log({
+  //   modelFindOne: Global.MongooseModel.findOne.toString(),
+  //   queryFindOne: query.findOne.toString(),
+  // })
+
+  // const newRandomDocument = await Global.MongooseModel.findOne({})
+  // console.log({ randomDocument, newRandomDocument, save: newRandomDocument.save.toString() })
+  // await newRandomDocument.save()
 
   await Global.CosmosClient.resetThroughput()
 
@@ -263,11 +278,13 @@ async function _useRecordAsync({ setup, model, mode, updateStep }) {
   const size = setup.testRecordSizes[index]
 
   let document
+  let query
 
   switch (mode) {
     case 'update':
       updateData.updateStep = updateStep
-      await model.findOneAndUpdate({ name }, updateData)
+      query = model.findOneAndUpdate({ name }, updateData)
+      document = await query.exec()
       break
 
     case 'update+':
@@ -286,7 +303,7 @@ async function _useRecordAsync({ setup, model, mode, updateStep }) {
       }
       break
 
-    case 'failing save':
+    case 'save':
       document = await model.findOne({ name })
       if (document == null) {
         throw new Error(
@@ -297,16 +314,15 @@ async function _useRecordAsync({ setup, model, mode, updateStep }) {
       await document.save()
       break
 
+    case 'save-0':
     case 'failing save 2':
-      document = await model.azureFindOne({ name })
+      document = await model.findOne({ name })
       if (document == null) {
         throw new Error(
           `Update of test record failed - findOne({ name: "${name}" }) returned nothing`
         )
       }
-      // document.updateStep = updateStep
-      // await document.save()
-      await model.azureSaveDocument(document)
+      await document.save()
       break
 
     case 'azureUpdate':

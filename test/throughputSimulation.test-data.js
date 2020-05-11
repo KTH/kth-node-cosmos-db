@@ -48,9 +48,7 @@ function getThroughputSimulations(fullSet = false) {
       }
   const recordsetList = Object.keys(recordsets)
 
-  const modeList = fullSet
-    ? ['update', 'azureUpdate', 'update+', 'azureUpdate+', 'failing save', 'azureSave', 'azureWrap']
-    : ['update+', 'azureUpdate+', 'failing save', 'azureSave', 'azureWrap']
+  const modeList = fullSet ? ['update', 'update+', 'save'] : ['update', 'update+', 'save', 'save-0']
 
   // modeList.splice(2, 0, 'failing save 2')
 
