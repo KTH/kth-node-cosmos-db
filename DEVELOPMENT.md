@@ -30,7 +30,7 @@ The package contains SVG-files with graphical representation of the source files
 npm run dependency-graph:update
 ```
 
-_It's generally a good idea to avoid dependency cycles - ensure that no file is marked red in the images._
+_**Hint:** It's generally a good idea to avoid dependency cycles - ensure that no file is marked red in the images._
 
 ## Unit tests
 
