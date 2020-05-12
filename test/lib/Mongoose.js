@@ -4,10 +4,12 @@
 // @ts-check
 
 module.exports = {
-  start,
-  stop,
+  connectTestServer,
+  disconnectTestServer,
   getTestModel,
+
   getTestObjectId,
+
   connectRealServer,
   ensureRealServerConnection,
   disconnectRealServer,
@@ -30,7 +32,7 @@ const Global = {
   },
 }
 
-async function start() {
+async function connectTestServer() {
   if (Global.server != null) {
     return
   }
@@ -58,7 +60,7 @@ async function start() {
   await mongoose.connect(dbConnectionString, mongooseOpts)
 }
 
-async function stop() {
+async function disconnectTestServer() {
   if (Global.server == null) {
     return
   }
@@ -69,14 +71,19 @@ async function stop() {
 }
 
 async function getTestModel(numberOfInitialDocuments = 1, options = {}) {
-  const { definition, template } = options
+  const { definition, template, transformSchema } = options
 
-  assert(Global.server != null, 'Await Mongoose.start(), first')
+  assert(Global.server != null, 'Await Mongoose.connectTestServer(), first')
 
   const sn = Global.testModelSerialNumber
   Global.testModelSerialNumber += 1
 
-  const schema = new mongoose.Schema(definition || { name: String, age: String })
+  let schema = new mongoose.Schema(definition || { name: String, age: String })
+
+  if (typeof transformSchema === 'function') {
+    schema = transformSchema(schema)
+  }
+
   const Model = mongoose.model(`Test-${sn}`, schema)
 
   const addSomeTestDocuments = []

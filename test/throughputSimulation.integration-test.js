@@ -314,6 +314,10 @@ async function _useRecordAsync({ setup, model, mode, updateStep }) {
       await document.save()
       break
 
+    // @TODO Find solution for simulation errors which occur sometimes
+    // "Updated throughput mismatch - got null instead of at least 600" or
+    // "Failed to query internal resource-ID of container "updatesimulations""
+    // Problems occur from time to time with "save-0" after 200+ items, maybe because it's fast
     case 'save-0':
     case 'failing save 2':
       document = await model.findOne({ name })

@@ -1,0 +1,72 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Helper module "adaptMongoose" exports function adaptMongooseModel() that adds the expected wrapper to all functions that return a query: adaptions 1`] = `
+"(...args) => {
+  const query = backup[methodName](...args);
+  if (includeBatchsize && client.batchSize) {
+    query.batchSize(client.batchSize);
+  }
+  query._azureAddons = { backup: { exec: query.exec.bind(query) } };
+  query.exec = (...execArgs) => {
+    return execWrapper(query._azureAddons.backup.exec, ...execArgs);
+  };
+  return query;
+};
+"
+`;
+
+exports[`Helper module "adaptMongoose" exports function adaptMongooseModel() that adds the expected wrapper to all functions that return a query: backups 1`] = `
+Object {
+  "count": [Function],
+  "countDocuments": [Function],
+  "deleteMany": [Function],
+  "deleteOne": [Function],
+  "estimatedDocumentCount": [Function],
+  "find": [Function],
+  "findById": [Function],
+  "findByIdAndDelete": [Function],
+  "findByIdAndRemove": [Function],
+  "findByIdAndUpdate": [Function],
+  "findOne": [Function],
+  "findOneAndDelete": [Function],
+  "findOneAndRemove": [Function],
+  "findOneAndReplace": [Function],
+  "findOneAndUpdate": [Function],
+  "remove": [Function],
+  "replaceOne": [Function],
+  "update": [Function],
+  "updateMany": [Function],
+  "updateOne": [Function],
+  "where": [Function],
+}
+`;
+
+exports[`Helper module "adaptMongoose" exports function adaptMongooseModel() that lets the model's constructor add the expected wrappers to any new document: adaptions 1`] = `
+"(...args) => {
+  return wrapper(backup[methodName], ...args);
+};
+"
+`;
+
+exports[`Helper module "adaptMongoose" exports function adaptMongooseModel() that lets the model's constructor add the expected wrappers to any new document: backups 1`] = `
+Object {
+  "deleteOne": [Function],
+  "remove": [Function],
+  "save": [Function],
+}
+`;
+
+exports[`Helper module "adaptMongoose" exports function adaptMongooseSchema() that adds Mongoose middleware with the expected functionality: adaptions 1`] = `
+"(...args) => {
+  return wrapper(backup[methodName], ...args);
+};
+"
+`;
+
+exports[`Helper module "adaptMongoose" exports function adaptMongooseSchema() that adds Mongoose middleware with the expected functionality: backups 1`] = `
+Object {
+  "deleteOne": [Function],
+  "remove": [Function],
+  "save": [Function],
+}
+`;

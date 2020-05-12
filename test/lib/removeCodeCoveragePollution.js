@@ -30,10 +30,12 @@ function _hoistClassDefinition() {
       this.result = this.func
 
       this._determineId()
+
       this._prepareMatchIncrementString()
     }
 
     _determineId() {
+      this.fileIsPolluted = false
       this.istanbulId = null
 
       const matchIstanbulStatement = /\/\* istanbul ignore next \*\/([^;]+);/g
@@ -59,18 +61,14 @@ function _hoistClassDefinition() {
         }
       }
 
-      if (this.istanbulId == null) {
-        // eslint-disable-next-line no-console
-        console.error('removeCodeCoveragePollution() failed to find Istanbul-ID')
-      }
-
+      this.fileIsPolluted = this.istanbulId != null
       return this
     }
 
     _prepareMatchIncrementString() {
       this.matchIncrementString = null
 
-      if (this.istanbulId != null) {
+      if (this.fileIsPolluted) {
         this.matchIncrementString = `${this.istanbulId}\\(\\)\\.\\w\\[\\d+\\](?:\\[\\d+\\])?\\+\\+`
       }
 
@@ -78,7 +76,7 @@ function _hoistClassDefinition() {
     }
 
     removeComments() {
-      if (this.istanbulId != null) {
+      if (this.fileIsPolluted) {
         const matchIstanbulComment = /\n[ \t]+\/\* istanbul ignore next \*\//g
 
         this.result = this.result.replace(matchIstanbulComment, '')
@@ -88,7 +86,7 @@ function _hoistClassDefinition() {
     }
 
     removeSimpleIncrements() {
-      if (this.istanbulId != null && this.matchIncrementString != null) {
+      if (this.fileIsPolluted && this.matchIncrementString != null) {
         const matchSimpleIncrements = new RegExp(`\n[ \t]*${this.matchIncrementString};`, 'g')
 
         this.result = this.result.replace(matchSimpleIncrements, '')
@@ -98,7 +96,7 @@ function _hoistClassDefinition() {
     }
 
     removeIncrementsInBrackets() {
-      if (this.istanbulId != null) {
+      if (this.fileIsPolluted) {
         let hasReplacedSomething = true
         while (hasReplacedSomething) {
           hasReplacedSomething = this._removeFirstIncrementInBrackets()
@@ -185,7 +183,7 @@ function _hoistClassDefinition() {
     }
 
     removeEmptyElseBranches() {
-      if (this.istanbulId != null) {
+      if (this.fileIsPolluted) {
         const matchEmptyElseBranch = / else\s*{\s*}/g
         this.result = this.result.replace(matchEmptyElseBranch, '')
       }
