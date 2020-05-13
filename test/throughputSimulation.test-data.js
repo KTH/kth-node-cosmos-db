@@ -10,13 +10,14 @@ module.exports = {
 
 const prettier = require('prettier')
 
+/**
+ * @returns {object}
+ */
 function getConfiguration() {
   const initialThroughput = 400
-  const collectionName = 'updatesimulations'
 
   const mongoose = {
-    collectionName,
-    modelName: 'UpdateSimulation',
+    _templateModelName: 'UpdateSimulation',
     modelDefinition: { name: String, updateStep: Number, data: String },
     documentTemplate: { name: 'Test, Integration', updateStep: -1, data: 'abcdefg' },
     shardKey: { name: 1 },
@@ -26,13 +27,22 @@ function getConfiguration() {
     fallbackDatabaseName: 'integrationTests',
     initialThroughput,
     maxThroughput: 20000,
-    collections: [{ name: collectionName, throughput: initialThroughput, partitionKey: ['/name'] }],
+    _collectionTemplate: {
+      name: 'updatesimulations',
+      throughput: initialThroughput,
+      partitionKey: ['/name'],
+    },
   }
 
   const configuration = { mongoose, cosmos }
   return configuration
 }
 
+/**
+ * @param {boolean} fullSet
+ *
+ * @returns {Array<Array>}
+ */
 function getThroughputSimulations(fullSet = false) {
   const recordsets = fullSet
     ? {
@@ -48,15 +58,40 @@ function getThroughputSimulations(fullSet = false) {
       }
   const recordsetList = Object.keys(recordsets)
 
-  const modeList = fullSet ? ['update', 'update+', 'save'] : ['update', 'update+', 'save', 'save-0']
-
-  // modeList.splice(2, 0, 'failing save 2')
+  const modeList = fullSet
+    ? [
+        'update',
+        'update+',
+        'save',
+        'save-0',
+        //
+      ]
+    : [
+        'update',
+        'update+',
+        'save',
+        'save-0',
+        //
+      ]
 
   const retryStrategyList = fullSet
-    ? ['fastest', 'fast', 'good', 'cheapest', 'fourAttemptsOnly']
+    ? [
+        'fastest',
+        'fast',
+        'good',
+        'cheapest',
+        'fourAttemptsOnly',
+        //
+      ]
     : ['good']
 
-  const throughputStepsizeList = fullSet ? [200] : [200]
+  const throughputStepsizeList = fullSet
+    ? [
+        100,
+        200,
+        //
+      ]
+    : [200]
 
   const testDataList = []
 
@@ -71,7 +106,14 @@ function getThroughputSimulations(fullSet = false) {
           } recordsets (strategy "${retryStrategy}", operation "${mode}", stepsize ${throughputStepsize})`
           testDataList.push([
             fullName,
-            { fullName, shortName, recordSizes, retryStrategy, mode, throughputStepsize },
+            {
+              fullName,
+              shortName,
+              recordSizes,
+              retryStrategy,
+              mode,
+              throughputStepsize,
+            },
           ])
         })
       })
